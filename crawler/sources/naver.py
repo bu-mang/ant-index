@@ -1,6 +1,7 @@
 import requests
 import time
 import random
+import json
 from bs4 import BeautifulSoup
 
 BASE_URL = "https://finance.naver.com"
@@ -117,13 +118,64 @@ def crawl_board(stock_code, page=1):
     return posts
 
 
+# ----------------------------
+# 개별 글 본문 크롤링
+# ----------------------------
+def crawl_post_detail(stock_code, nid):
+    """글 상세 페이지에서 본문 텍스트를 가져옴"""
+
+    # 네이버증권 글 상세는 iframe 안에 Next.js 앱이 들어있음
+    # iframe URL을 직접 요청하면 __NEXT_DATA__에 글 데이터가 JSON으로 담겨 있음
+    iframe_url = f"https://m.stock.naver.com/pc/domestic/stock/{stock_code}/discussion/{nid}"
+    response = requests.get(iframe_url, headers=get_headers())
+    response.raise_for_status()
+
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    # __NEXT_DATA__ = Next.js가 SSR 시 페이지에 삽입하는 JSON 데이터
+    next_data = soup.find("script", id="__NEXT_DATA__")
+    if not next_data:
+        return None
+
+    data = json.loads(next_data.string)
+    queries = data["props"]["pageProps"]["dehydratedState"]["queries"]
+
+    # queries 중에서 글 데이터(title, contentHtml 등)가 있는 항목 찾기
+    for query in queries:
+        result = query.get("state", {}).get("data", {}).get("result", {})
+        if isinstance(result, dict) and "contentHtml" in result:
+            # contentHtml은 HTML 문자열 → BeautifulSoup으로 텍스트만 추출
+            content_soup = BeautifulSoup(result["contentHtml"], "html.parser")
+            return {
+                "title": result.get("title", ""),
+                "body": content_soup.get_text(strip=True),
+                "views": result.get("viewCount", 0),
+                "likes": result.get("recommendCount", 0),
+                "dislikes": result.get("notRecommendCount", 0),
+                "date": result.get("writtenAt", ""),
+            }
+
+    return None
+
+
 # 직접 실행 시 테스트
 if __name__ == "__main__":
     print("=== 삼성전자 종목토론실 크롤링 테스트 ===\n")
     posts = crawl_board("005930")
     print(f"총 {len(posts)}개 글 수집\n")
-    for p in posts[:5]:
+
+    # 상위 3개 글의 본문도 가져오기
+    for p in posts[:20]:
         print(f"[{p['date']}] {p['title']}")
         print(f"  조회 {p['views']} / 추천 {p['likes']} / 비추천 {p['dislikes']}")
-        print(f"  URL: {p['url']}")
+
+        # 본문 크롤링
+        detail = crawl_post_detail("005930", p["nid"])
+        if detail:
+            body_preview = detail["body"][:100]
+            print(f"  본문: {body_preview}")
+        else:
+            print(f"  본문: (가져오기 실패)")
+
         print()
+        time.sleep(random.uniform(2, 4))  # 요청 간 딜레이

@@ -244,6 +244,10 @@ playwright install chromium
 - React SPA → headless 브라우저 필수
 - Playwright가 Puppeteer보다 안정적이고 Python 생태계에 잘 맞음
 - 브라우저 인스턴스 재사용으로 메모리 절약
+- **인증**: 앱 인증 로그인 필수 (아이디/비밀번호 로그인 불가)
+  - Playwright로 브라우저 띄움 → 수동 로그인 → 세션을 `toss_session.json`으로 저장
+  - 크롤러는 저장된 세션으로 로그인 상태 유지
+  - 세션 만료 주기: ~1주일 → 주 1회 수동 재로그인 필요
 
 **공통**:
 - User-Agent 로테이션, 3-5초 간격
