@@ -1,10 +1,12 @@
 # 개미지표 (Ant-Index) 구현 계획
 
 ## Context
+
 한국 주식 커뮤니티의 감성을 분석하여 공포탐욕지수와 유사한 시장 심리 지표를 만드는 1인 사이드 프로젝트.
 커뮤니티 비속어 기반 지표(ㅅㅂ지수)와 환희 키워드 기반 지표(가즈아지수)를 핵심으로, 시장 데이터 기반 지표를 점진적으로 확장.
 
 ## 기술 스택
+
 - **크롤러**: Python (requests + BeautifulSoup / Playwright) — cron 배치 스크립트
 - **백엔드**: Nest.js (지표 계산 + API)
 - **프론트엔드**: Next.js (대시보드)
@@ -15,25 +17,61 @@
 - **배포**: 온프레미스 서버 (라즈베리파이 8GB 또는 미니PC)
 
 ## 데이터 소스 (MVP에서 둘 다 동시 진행)
+
 - **네이버증권 종목토론실**: SSR, requests + BeautifulSoup으로 크롤링
 - **토스증권 커뮤니티**: SPA, Playwright로 크롤링
 
 ## 지표 범위
 
-### 개별 종목 (curated 국내 30 + 미국 30 = 60개)
+### 개별 종목 (curated 국내 30개 — 커뮤니티 화력 기준 선정)
 
-| 지표 | 설명 | Phase |
-|------|------|-------|
-| **ㅅㅂ지수** (공포/분노) | 커뮤니티 비속어 비율 기반 | Phase 1 (MVP) |
-| **가즈아지수** (환희/탐욕) | 커뮤니티 긍정·환희 키워드 비율 기반 | Phase 1 (MVP) |
-| **종목별 공탐지수** | 거래량, 변동성, 풋/콜 등 시장 데이터 기반 | Phase 3 |
+| # | 종목명 | 종목코드 | 섹터 |
+|---|--------|---------|------|
+| 1 | 삼성전자 | 005930 | 반도체 |
+| 2 | SK하이닉스 | 000660 | 반도체 |
+| 3 | 현대차 | 005380 | 자동차 |
+| 4 | LG에너지솔루션 | 373220 | 2차전지 |
+| 5 | 한미반도체 | 042700 | 반도체 |
+| 6 | 한화에어로스페이스 | 012450 | 방산 |
+| 7 | 삼성바이오로직스 | 207940 | 바이오 |
+| 8 | 두산에너빌리티 | 034020 | 에너지 |
+| 9 | 한국전력 | 015760 | 에너지 |
+| 10 | NAVER | 035420 | 플랫폼 |
+| 11 | 셀트리온 | 068270 | 바이오 |
+| 12 | 한화오션 | 042660 | 조선 |
+| 13 | 한화시스템 | 272210 | 방산 |
+| 14 | 삼성중공업 | 010140 | 조선 |
+| 15 | 카카오 | 035720 | 플랫폼 |
+| 16 | POSCO홀딩스 | 005490 | 철강 |
+| 17 | LG전자 | 066570 | 전자 |
+| 18 | SK이노베이션 | 096770 | 에너지 |
+| 19 | 현대건설 | 000720 | 건설 |
+| 20 | 한국항공우주 | 047810 | 방산 |
+| 21 | HMM | 011200 | 해운 |
+| 22 | 하이브 | 352820 | 엔터 |
+| 23 | 이수페타시스 | 007660 | 반도체 |
+| 24 | 대한항공 | 003490 | 항공 |
+| 25 | 한화솔루션 | 009830 | 2차전지 |
+| 26 | 카카오페이 | 377300 | 플랫폼 |
+| 27 | 유한양행 | 000100 | 바이오 |
+| 28 | 엘앤에프 | 066970 | 2차전지 |
+| 29 | LG씨엔에스 | 064400 | IT |
+| 30 | LG디스플레이 | 034220 | 디스플레이 |
+
+#### 지표
+
+| 지표                       | 설명                                      | Phase         |
+| -------------------------- | ----------------------------------------- | ------------- |
+| **ㅅㅂ지수** (공포/분노)   | LLM 감성 분류 기반 하락론자 비율          | Phase 1 (MVP) |
+| **가즈아지수** (환희/탐욕) | LLM 감성 분류 기반 상승론자 비율          | Phase 1 (MVP) |
+| **종목별 공탐지수**        | 거래량, 변동성, 풋/콜 등 시장 데이터 기반 | Phase 3       |
 
 ### 전체 시장
 
-| 지표 | 설명 | Phase |
-|------|------|-------|
+| 지표                | 설명                                   | Phase   |
+| ------------------- | -------------------------------------- | ------- |
 | **코스피 공탐지수** | 거래량, 변동성, 풋/콜 등으로 자체 계산 | Phase 3 |
-| **나스닥 공탐지수** | CNN Fear & Greed Index 가져오기 | Phase 2 |
+| **나스닥 공탐지수** | CNN Fear & Greed Index 가져오기        | Phase 2 |
 
 ---
 
@@ -106,6 +144,7 @@ db.select().from(comments).where(
 #### 감성 분석 방식: LLM 기반 (Exaone 3.5 2.4B + Ollama)
 
 **검증 결과** (2026.03 테스트):
+
 - ML 분류 모델 (koelectra, KR-FinBert-SC): 커뮤니티 비속어/은어 이해 불가 → 부적합
 - Exaone 7.8B + few-shot 프롬프트: 8~9/10 정확도
 - Exaone 2.4B + few-shot 프롬프트: 9/10 정확도 (7.8B와 동등 이상, 더 가벼움)
@@ -114,10 +153,12 @@ db.select().from(comments).where(
 **분류 체계**: 상승론자 / 하락론자 / 중립
 
 **처리 방식**: 배치 — 종목당 50개 글을 1번 요청으로 처리
+
 - 60종목 × 1요청 = 60번 요청/사이클
 - 예상 소요 시간: 30분~1시간/사이클
 
 **프롬프트 구성**:
+
 - 시스템 역할: "주식 커뮤니티 감성 분석기"
 - 판별 기준: 상승론자/하락론자/중립 정의
 - 톤 판단 규칙: 이모티콘, 어미 패턴으로 감성 읽기
@@ -128,6 +169,7 @@ db.select().from(comments).where(
 - temperature: 0.5 (보수적 중립 판정 방지)
 
 **응답 형식**:
+
 ```json
 {
   "1": {"result": "상승론자", "reason": "한줄 이유"},
@@ -137,6 +179,7 @@ db.select().from(comments).where(
 ```
 
 **한계 및 보완**:
+
 - 신조어/커뮤니티 은어 일부 미인식 (예: "고잘" = 고점에 잘 물림)
 - 걱정/불안 톤을 중립으로 오분류하는 경향 있음
 - 향후 보완: 키워드 사전 전처리 + LLM 조합, 또는 Claude API fallback
@@ -144,72 +187,80 @@ db.select().from(comments).where(
 #### ㅅㅂ지수 / 가즈아지수 산출
 
 LLM 분류 결과(상승론자/하락론자)를 기반으로 지표 계산:
+
 - **ㅅㅂ지수**: 하락론자 비율 기반 (높을수록 분노/공포)
 - **가즈아지수**: 상승론자 비율 기반 (높을수록 환희/탐욕)
 
 #### 좋아요 가중치
 
 좋아요가 많은 글은 커뮤니티 공감을 받은 의견이므로 더 높은 가중치 부여:
+
 ```
 글 가중치 = 1 + log10(좋아요 수 + 1)
 ```
+
 | 좋아요 | 가중치 |
-|--------|--------|
-| 0 | 1.0 |
-| 10 | 2.0 |
-| 100 | 3.0 |
-| 1000 | 4.0 |
+| ------ | ------ |
+| 0      | 1.0    |
+| 10     | 2.0    |
+| 100    | 3.0    |
+| 1000   | 4.0    |
 
 지표 계산 시 `LLM_분류_결과 × 글_좋아요_가중치`로 최종 스코어 산출.
 
 ### 2. 지표 계산
 
 #### ㅅㅂ지수 (0~100, 높을수록 분노)
+
 ```
 raw_score = (가중_비속어_수 / 전체_댓글_수) × 1000
 normalized = ((raw - min_30d) / (max_30d - min_30d)) × 100  [0~100 클램프]
 ```
 
-| 범위 | 레이블 |
-|------|--------|
-| 0-20 | 극도의 평온 |
-| 20-40 | 평온 |
-| 40-60 | 보통 |
-| 60-80 | 불안 |
+| 범위   | 레이블      |
+| ------ | ----------- |
+| 0-20   | 극도의 평온 |
+| 20-40  | 평온        |
+| 40-60  | 보통        |
+| 60-80  | 불안        |
 | 80-100 | 극도의 분노 |
 
 #### 가즈아지수 (0~100, 높을수록 환희)
+
 ```
 raw_score = (가중_환희_키워드_수 / 전체_댓글_수) × 1000
 normalized = ((raw - min_30d) / (max_30d - min_30d)) × 100  [0~100 클램프]
 ```
 
-| 범위 | 레이블 |
-|------|--------|
-| 0-20 | 침체 |
-| 20-40 | 조용 |
-| 40-60 | 보통 |
-| 60-80 | 흥분 |
+| 범위   | 레이블      |
+| ------ | ----------- |
+| 0-20   | 침체        |
+| 20-40  | 조용        |
+| 40-60  | 보통        |
+| 60-80  | 흥분        |
 | 80-100 | 극도의 환희 |
 
 #### 댓글 활성도 (0~100, 높을수록 활발)
+
 ```
 raw_count = 최근 시간 댓글 수
 normalized = ((raw - min_30d) / (max_30d - min_30d)) × 100  [0~100 클램프]
 ```
+
 - 정규화 활성도 (0~100): 평소 대비 얼마나 뜨거운지 → `index_snapshots`에 ACTIVITY로 저장
 - 절대 댓글 수: 종목 간 화력 비교 → `index_snapshots`의 `totalPosts` 컬럼 활용
 - 국장/미장 모두 동일 방식 적용 (개미 거래 비율은 국장만 pykrx로 측정 가능, 미장은 공개 데이터 없음)
 
-| 범위 | 레이블 |
-|------|--------|
-| 0-20 | 한산 |
-| 20-40 | 조용 |
-| 40-60 | 보통 |
-| 60-80 | 활발 |
-| 80-100 | 폭발 |
+| 범위   | 레이블 |
+| ------ | ------ |
+| 0-20   | 한산   |
+| 20-40  | 조용   |
+| 40-60  | 보통   |
+| 60-80  | 활발   |
+| 80-100 | 폭발   |
 
 **공통**:
+
 - **시간 단위**: 시간별 스냅샷 저장, 일별 롤업, 7일 이동평균
 - **최소 댓글 기준**: 일 10개 미만 종목은 제외 또는 저신뢰 표시
 - **부트스트랩**: 크롤러를 먼저 가동하여 30일간 데이터 축적 (지표 비공개) → 30일 후 지표 공개. 프론트 개발 기간과 병행하면 자연스럽게 해결
@@ -236,6 +287,7 @@ normalized = ((raw - min_30d) / (max_30d - min_30d)) × 100  [0~100 클램프]
 | `logging` | 크롤링 로그 |
 
 **requirements.txt**:
+
 ```
 requests
 beautifulsoup4
@@ -247,6 +299,7 @@ pykrx
 ```
 
 **Playwright 초기 설정**:
+
 ```bash
 pip install playwright
 playwright install chromium
@@ -255,12 +308,14 @@ playwright install chromium
 ### 4. 크롤링 전략 (Python)
 
 **네이버증권 (requests + BeautifulSoup)**:
+
 - 종목토론실: `https://finance.naver.com/item/board.nhn?code={종목코드}` — 댓글 수집
 - 종목메인: `https://finance.naver.com/item/main.nhn?code={종목코드}` — 기본 정보(현재가, 시총, PER 등) 함께 수집
 - SSR이라 HTML 직접 파싱 가능
 - GitHub 오픈소스 크롤러 다수 참고 가능
 
 **토스증권 (Playwright)**:
+
 - URL: `https://www.tossinvest.com/stocks/A{종목코드}/community`
 - React SPA → headless 브라우저 필수
 - Playwright가 Puppeteer보다 안정적이고 Python 생태계에 잘 맞음
@@ -271,6 +326,7 @@ playwright install chromium
   - 세션 만료 주기: ~1주일 → 주 1회 수동 재로그인 필요
 
 **공통**:
+
 - User-Agent 로테이션, 3-5초 간격
 - 지수 백오프 (429/503 에러 시)
 - abstract `BaseSource` 클래스로 인터페이스 통일
@@ -286,88 +342,88 @@ playwright install chromium
 
 #### stocks (종목 마스터)
 
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| id | serial PK | |
-| code | varchar | 종목코드 (005930) |
-| name | varchar | 종목명 |
-| market | enum | KOSPI / KOSDAQ / US |
-| sector | varchar | 섹터 |
-| description | text | 설명 |
-| isActive | boolean | 추적 여부 |
-| createdAt | timestamp | |
-| updatedAt | timestamp | |
+| 컬럼        | 타입      | 설명                |
+| ----------- | --------- | ------------------- |
+| id          | serial PK |                     |
+| code        | varchar   | 종목코드 (005930)   |
+| name        | varchar   | 종목명              |
+| market      | enum      | KOSPI / KOSDAQ / US |
+| sector      | varchar   | 섹터                |
+| description | text      | 설명                |
+| isActive    | boolean   | 추적 여부           |
+| createdAt   | timestamp |                     |
+| updatedAt   | timestamp |                     |
 
 #### stock_prices (종목 시세)
 
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| id | serial PK | |
-| stockId | FK → stocks | |
-| currentPrice | integer | 현재가 |
-| changeRate | decimal | 등락률 (%) |
-| volume | bigint | 거래량 |
-| marketCap | bigint | 시가총액 |
-| per | decimal | PER |
-| pbr | decimal | PBR |
-| dividendYield | decimal | 배당수익률 |
-| high52w | integer | 52주 최고가 |
-| low52w | integer | 52주 최저가 |
-| updatedAt | timestamp | |
+| 컬럼          | 타입        | 설명        |
+| ------------- | ----------- | ----------- |
+| id            | serial PK   |             |
+| stockId       | FK → stocks |             |
+| currentPrice  | integer     | 현재가      |
+| changeRate    | decimal     | 등락률 (%)  |
+| volume        | bigint      | 거래량      |
+| marketCap     | bigint      | 시가총액    |
+| per           | decimal     | PER         |
+| pbr           | decimal     | PBR         |
+| dividendYield | decimal     | 배당수익률  |
+| high52w       | integer     | 52주 최고가 |
+| low52w        | integer     | 52주 최저가 |
+| updatedAt     | timestamp   |             |
 
 #### posts (크롤링 글/댓글)
 
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| id | serial PK | |
-| stockId | FK → stocks | |
-| source | enum | NAVER / TOSS |
-| type | enum | POST / COMMENT |
-| parentId | FK → posts, nullable | COMMENT일 때 원글 연결 |
-| title | varchar, nullable | POST만 제목 있음 |
-| content | text | 본문 |
-| likeCount | integer | 좋아요 수 |
-| profanityScore | decimal | 비속어 점수 (가중치 적용) |
-| euphoriaScore | decimal | 환희 점수 (가중치 적용) |
-| postedAt | timestamp | 작성 시각 |
-| crawledAt | timestamp | 크롤링 시각 |
+| 컬럼           | 타입                 | 설명                      |
+| -------------- | -------------------- | ------------------------- |
+| id             | serial PK            |                           |
+| stockId        | FK → stocks          |                           |
+| source         | enum                 | NAVER / TOSS              |
+| type           | enum                 | POST / COMMENT            |
+| parentId       | FK → posts, nullable | COMMENT일 때 원글 연결    |
+| title          | varchar, nullable    | POST만 제목 있음          |
+| content        | text                 | 본문                      |
+| likeCount      | integer              | 좋아요 수                 |
+| profanityScore | decimal              | 비속어 점수 (가중치 적용) |
+| euphoriaScore  | decimal              | 환희 점수 (가중치 적용)   |
+| postedAt       | timestamp            | 작성 시각                 |
+| crawledAt      | timestamp            | 크롤링 시각               |
 
 > MVP: type=POST만 크롤링, 댓글 확장 시 같은 테이블에 COMMENT 추가
 
 #### news (뉴스 링크)
 
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| id | serial PK | |
-| stockId | FK → stocks | |
-| title | varchar | 뉴스 제목 |
-| url | varchar | 원문 링크 |
-| source | varchar | 출처 |
-| publishedAt | timestamp | 발행 시각 |
-| crawledAt | timestamp | 크롤링 시각 |
+| 컬럼        | 타입        | 설명        |
+| ----------- | ----------- | ----------- |
+| id          | serial PK   |             |
+| stockId     | FK → stocks |             |
+| title       | varchar     | 뉴스 제목   |
+| url         | varchar     | 원문 링크   |
+| source      | varchar     | 출처        |
+| publishedAt | timestamp   | 발행 시각   |
+| crawledAt   | timestamp   | 크롤링 시각 |
 
 #### index_snapshots (지표 스냅샷)
 
-| 컬럼 | 타입 | 설명 |
-|------|------|------|
-| id | serial PK | |
-| stockId | FK → stocks, nullable | null이면 전체 시장 지표 |
-| indexType | enum | SB / GAZUA / FEAR_GREED / ACTIVITY |
-| indexValue | decimal | 0~100 정규화된 지표값 |
-| rawScore | decimal | 정규화 전 원시 점수 |
-| totalPosts | integer | 해당 기간 전체 글 수 |
-| postChangeRate | decimal | 글 증가율 (%) — 이전 동일 기간 대비. "새글 폭발 순" 정렬용 |
-| periodStart | timestamp | 기간 시작 |
-| periodEnd | timestamp | 기간 끝 |
-| periodType | enum | HOURLY / DAILY |
-| createdAt | timestamp | |
+| 컬럼           | 타입                  | 설명                                                       |
+| -------------- | --------------------- | ---------------------------------------------------------- |
+| id             | serial PK             |                                                            |
+| stockId        | FK → stocks, nullable | null이면 전체 시장 지표                                    |
+| indexType      | enum                  | SB / GAZUA / FEAR_GREED / ACTIVITY                         |
+| indexValue     | decimal               | 0~100 정규화된 지표값                                      |
+| rawScore       | decimal               | 정규화 전 원시 점수                                        |
+| totalPosts     | integer               | 해당 기간 전체 글 수                                       |
+| postChangeRate | decimal               | 글 증가율 (%) — 이전 동일 기간 대비. "새글 폭발 순" 정렬용 |
+| periodStart    | timestamp             | 기간 시작                                                  |
+| periodEnd      | timestamp             | 기간 끝                                                    |
+| periodType     | enum                  | HOURLY / DAILY                                             |
+| createdAt      | timestamp             |                                                            |
 
 #### DB 인덱스
 
-| 테이블 | 인덱스 컬럼 | 용도 |
-|--------|------------|------|
-| posts | (stockId, type, crawledAt) | 종목별 + 타입별 시간순 조회 |
-| index_snapshots | (stockId, periodType, periodEnd) | 종목별 지표 히스토리 조회 |
+| 테이블          | 인덱스 컬럼                      | 용도                        |
+| --------------- | -------------------------------- | --------------------------- |
+| posts           | (stockId, type, crawledAt)       | 종목별 + 타입별 시간순 조회 |
+| index_snapshots | (stockId, periodType, periodEnd) | 종목별 지표 히스토리 조회   |
 
 ### 7. API 엔드포인트
 
@@ -395,6 +451,7 @@ GET /api/stocks/:code/fear-greed             # 종목별 공탐지수
 **톤**: 흥미/감성 위주 프로젝트이므로 비주얼 임팩트 중요
 
 **브랜딩** (개발 병행하며 확정):
+
 - 서비스명: TBD (개미지표 working title)
 - 로고, 폰트, 카피, 도메인 — TBD (코드에 자리만 잡아두고 나중에 교체)
 - 캐릭터: 3D 개미 마스코트 — 감정 표현용, 지표에 따라 표정/포즈 변화
@@ -405,10 +462,10 @@ GET /api/stocks/:code/fear-greed             # 종목별 공탐지수
 
 **디자인 — UI와 그래픽 분리**:
 
-| 영역 | 톤 | 레퍼런스 |
-|------|------|---------|
-| **UI/레이아웃** | 깔끔, 카드, 여백, 절제 | Phantom, 토스, Robinhood |
-| **그래픽/브랜딩** | 투박, 비정형, 거친 질감, 강렬한 대비 | 머니그라피, 배달의민족 |
+| 영역              | 톤                                   | 레퍼런스                 |
+| ----------------- | ------------------------------------ | ------------------------ |
+| **UI/레이아웃**   | 깔끔, 카드, 여백, 절제               | Phantom, 토스, Robinhood |
+| **그래픽/브랜딩** | 투박, 비정형, 거친 질감, 강렬한 대비 | 머니그라피, 배달의민족   |
 
 - UI: 카드 기반, 둥근 모서리, 충분한 여백 (토스/Phantom)
 - UI: 숫자가 화면 주인공 — 지표 수치를 크고 임팩트 있게 (Robinhood)
@@ -417,6 +474,7 @@ GET /api/stocks/:code/fear-greed             # 종목별 공탐지수
 - 갭의 매력: 절제된 UI 안에서 로고·캐릭터·OG이미지·공유카드에서 날것의 개성이 터짐
 
 **컬러 시스템**:
+
 - 브랜드 포인트: 블랙 + 오렌지/레드 (머니그라피 톤)
 - ㅅㅂ지수: 레드 계열 (분노)
 - 가즈아지수: 그린 계열 (환희)
@@ -424,17 +482,20 @@ GET /api/stocks/:code/fear-greed             # 종목별 공탐지수
 - 라이트 모드 배경: 연한 그레이/화이트
 
 **프론트엔드 원칙**:
+
 - 다크/라이트 테마 전환 지원 (shadcn 테마 시스템 + CSS 변수 활용)
 - 컴포넌트 재사용성 — 공통 UI를 추출하여 일관된 인터페이스 유지
 - 디자인 토큰 체계 — 타이포그래피, 컬러, 스페이싱을 Tailwind config에 정의하여 전역 일관성 확보
 
 **페이지 구조**:
+
 - `/` — 메인 대시보드
 - `/stocks` — 종목 리스트 (필터/정렬)
 - `/stocks/[code]` — 종목 상세
 - `/about` — 서비스 소개, 지표 산출 방식 (출처는 "국내외 주요 주식 커뮤니티"로만 표기)
 
 #### AI 요약
+
 - LLM으로 시장 전체 / 종목별 요약 자동 생성
 - 입력: 이미 분석된 통계 (지표 수치, 키워드 빈도, 뉴스 제목 등) → 토큰 소비 적음
 - 생성 주기: 하루 3회 (장 시작 전/장중/장 마감 후) 또는 매시간 (비용에 따라 조정)
@@ -593,12 +654,14 @@ GET /api/stocks/:code/fear-greed             # 종목별 공탐지수
 ```
 
 #### 기타 페이지
+
 - **`/stocks`** — 종목 리스트 (필터/정렬)
 - **`/about`** — 서비스 소개, "국내외 주요 주식 커뮤니티 데이터 기반" 지표 산출 방식 설명
 
 ### 9. SEO & 소셜 공유 최적화
 
 **OG(Open Graph) 이미지 동적 생성**:
+
 - 종목별 페이지마다 고유 OG 이미지 자동 생성
 - 게이지 + 지표 수치 + 3D 개미 캐릭터 포함
 - 카톡/트위터/슬랙 등에서 공유 시 임팩트 있는 미리보기
@@ -614,6 +677,7 @@ GET /api/stocks/:code/fear-greed             # 종목별 공탐지수
 - Next.js `ImageResponse` (og) API 또는 `@vercel/og`로 구현
 
 **공유 카드 생성**:
+
 - [공유하기] 버튼 → 종목별 공유 카드 이미지 자동 생성 (게이지 + 수치 + 캐릭터 + 날짜 + URL)
 - 저장/공유 옵션: [이미지 저장] [카톡 공유] [X 공유] [링크 복사]
 - 이미지 비율: 정사각형(1:1), 인스타 스토리(9:16) 대응
@@ -633,16 +697,19 @@ GET /api/stocks/:code/fear-greed             # 종목별 공탐지수
   ```
 
 **스크린샷 친화적 UI**:
+
 - 게이지 + 수치 + 캐릭터가 한 뷰포트에 다 보이는 레이아웃
 - 서비스 URL이 자연스럽게 포함 (워터마크 역할)
 - 깔끔한 배경으로 캡처 그대로 공유 가능
 
 **SEO**:
+
 - 종목별 30개 페이지 → 검색 유입에 유리
 - 메타 타이틀: "삼성전자 ㅅㅂ지수 - 개미지표"
 - 시장 폭락 시 자연스러운 검색 유입 ("주식 분위기", "시장 심리" 등)
 
 **수익화**:
+
 - MVP: 구글 애드센스 only (트래픽 확보 후)
 - 금융 분야 RPM $3-8 수준, 일 500명 기준 월 20-50만원 예상
 - 향후 확장 가능: 알림 서비스 (텔레그램 봇, 무료/유료 티어), 프리미엄 구독
@@ -665,15 +732,17 @@ GET /api/stocks/:code/fear-greed             # 종목별 공탐지수
 ### Phase 1: MVP — 커뮤니티 감성 지표 (ㅅㅂ지수 + 가즈아지수)
 
 **Step 1: 크롤러 먼저 가동 (데이터 축적 30일)**
+
 - Docker Compose 프로젝트 셋업
 - PostgreSQL + DB 엔티티
-- curated 종목 60개 리스트 작성 (국내 30 + 미국 30)
+- curated 종목 30개 리스트 (국내, 커뮤니티 화력 기준) — MVP는 국내 30개만, 미국 30개는 토스증권 크롤러 추가 후 확장
 - Python 크롤러: 네이버증권 + 토스증권
 - Ollama + Exaone 3.5 2.4B 감성 분석 파이프라인
 - 5개 종목 테스트 → 60개 확장
 - 크롤러 가동 시작 → 30일간 데이터 축적
 
 **Step 2: 서버 + 프론트 (크롤러 가동과 병행)**
+
 - Nest.js + Drizzle ORM + PostgreSQL 설정
 - ㅅㅂ지수 / 가즈아지수 계산 로직
 - REST API 엔드포인트
@@ -682,16 +751,19 @@ GET /api/stocks/:code/fear-greed             # 종목별 공탐지수
 **Step 3: 지표 공개 (30일 데이터 축적 완료 후)**
 
 ### Phase 2: 나스닥 공탐지수
+
 - CNN Fear & Greed Index 크롤링/API 연동
 - 대시보드에 나스닥 공탐지수 표시
 
 ### Phase 3: 시장 데이터 기반 지표
+
 - 한국투자증권 OpenAPI 등 시장 데이터 소스 조사 및 연동
 - 코스피 전체 공탐지수 자체 계산 (거래량, 변동성, 풋/콜 등)
 - 종목별 공탐지수 (거래량, 변동성 등 활용 가능한 데이터 기반)
 - 대시보드에 시장 데이터 기반 지표 통합
 
 ### Phase 4: 배포 + 고도화
+
 - 각 서비스 Dockerfile 작성
 - docker-compose.yml 구성 (db, crawler, server, web)
 - 온프레미스 서버에 Docker 설치 → `docker compose up -d`
