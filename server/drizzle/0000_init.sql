@@ -2,6 +2,7 @@ CREATE TYPE "public"."index_type" AS ENUM('SB', 'GAZUA', 'FEAR_GREED');--> state
 CREATE TYPE "public"."market" AS ENUM('KOSPI', 'KOSDAQ', 'NASDAQ', 'NYSE');--> statement-breakpoint
 CREATE TYPE "public"."period_type" AS ENUM('HOURLY', 'DAILY');--> statement-breakpoint
 CREATE TYPE "public"."post_type" AS ENUM('POST', 'COMMENT');--> statement-breakpoint
+CREATE TYPE "public"."sentiment" AS ENUM('BULL', 'BEAR', 'NEUTRAL');--> statement-breakpoint
 CREATE TYPE "public"."source" AS ENUM('NAVER', 'TOSS');--> statement-breakpoint
 CREATE TABLE "index_snapshots" (
 	"id" serial PRIMARY KEY NOT NULL,
@@ -32,12 +33,16 @@ CREATE TABLE "posts" (
 	"stock_id" integer NOT NULL,
 	"source" "source" NOT NULL,
 	"type" "post_type" DEFAULT 'POST' NOT NULL,
+	"external_id" varchar(100),
 	"parent_id" integer,
 	"title" varchar(500),
 	"content" text NOT NULL,
+	"view_count" integer DEFAULT 0 NOT NULL,
 	"like_count" integer DEFAULT 0 NOT NULL,
-	"profanity_score" numeric(8, 4) DEFAULT '0' NOT NULL,
-	"euphoria_score" numeric(8, 4) DEFAULT '0' NOT NULL,
+	"dislike_count" integer DEFAULT 0 NOT NULL,
+	"sentiment_label" "sentiment",
+	"sentiment_reason" text,
+	"analyzed_at" timestamp,
 	"posted_at" timestamp,
 	"crawled_at" timestamp DEFAULT now() NOT NULL
 );

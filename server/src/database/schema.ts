@@ -12,10 +12,20 @@ import {
 } from 'drizzle-orm/pg-core';
 
 // Enums
-export const marketEnum = pgEnum('market', ['KOSPI', 'KOSDAQ', 'NASDAQ', 'NYSE']);
+export const marketEnum = pgEnum('market', [
+  'KOSPI',
+  'KOSDAQ',
+  'NASDAQ',
+  'NYSE',
+]);
 export const sourceEnum = pgEnum('source', ['NAVER', 'TOSS']);
 export const postTypeEnum = pgEnum('post_type', ['POST', 'COMMENT']);
-export const indexTypeEnum = pgEnum('index_type', ['SB', 'GAZUA', 'FEAR_GREED']);
+export const sentimentEnum = pgEnum('sentiment', ['BULL', 'BEAR', 'NEUTRAL']);
+export const indexTypeEnum = pgEnum('index_type', [
+  'SB',
+  'GAZUA',
+  'FEAR_GREED',
+]);
 export const periodTypeEnum = pgEnum('period_type', ['HOURLY', 'DAILY']);
 
 // ─── stocks (종목 마스터) ───
@@ -57,12 +67,16 @@ export const posts = pgTable('posts', {
     .references(() => stocks.id),
   source: sourceEnum('source').notNull(),
   type: postTypeEnum('type').notNull().default('POST'),
+  externalId: varchar('external_id', { length: 100 }), // 원본 글 ID (네이버 nid 등, 중복 방지)
   parentId: integer('parent_id').references((): any => posts.id),
   title: varchar('title', { length: 500 }),
   content: text('content').notNull(),
+  viewCount: integer('view_count').notNull().default(0),
   likeCount: integer('like_count').notNull().default(0),
-  profanityScore: decimal('profanity_score', { precision: 8, scale: 4 }).notNull().default('0'),
-  euphoriaScore: decimal('euphoria_score', { precision: 8, scale: 4 }).notNull().default('0'),
+  dislikeCount: integer('dislike_count').notNull().default(0),
+  sentimentLabel: sentimentEnum('sentiment_label'), // null = 미분석
+  sentimentReason: text('sentiment_reason'),
+  analyzedAt: timestamp('analyzed_at'),
   postedAt: timestamp('posted_at'),
   crawledAt: timestamp('crawled_at').notNull().defaultNow(),
 });

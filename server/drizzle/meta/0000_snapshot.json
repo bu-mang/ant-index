@@ -1,5 +1,5 @@
 {
-  "id": "4f86a3b0-0b02-45e8-9d6b-19988ed43f77",
+  "id": "f04f6dc5-0a4a-4968-bf41-b3465e5b3f7a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -202,6 +202,12 @@
           "notNull": true,
           "default": "'POST'"
         },
+        "external_id": {
+          "name": "external_id",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "parent_id": {
           "name": "parent_id",
           "type": "integer",
@@ -220,6 +226,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "view_count": {
+          "name": "view_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "like_count": {
           "name": "like_count",
           "type": "integer",
@@ -227,19 +240,31 @@
           "notNull": true,
           "default": 0
         },
-        "profanity_score": {
-          "name": "profanity_score",
-          "type": "numeric(8, 4)",
+        "dislike_count": {
+          "name": "dislike_count",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "default": "'0'"
+          "default": 0
         },
-        "euphoria_score": {
-          "name": "euphoria_score",
-          "type": "numeric(8, 4)",
+        "sentiment_label": {
+          "name": "sentiment_label",
+          "type": "sentiment",
+          "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'0'"
+          "notNull": false
+        },
+        "sentiment_reason": {
+          "name": "sentiment_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "analyzed_at": {
+          "name": "analyzed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         },
         "posted_at": {
           "name": "posted_at",
@@ -504,6 +529,15 @@
       "values": [
         "POST",
         "COMMENT"
+      ]
+    },
+    "public.sentiment": {
+      "name": "sentiment",
+      "schema": "public",
+      "values": [
+        "BULL",
+        "BEAR",
+        "NEUTRAL"
       ]
     },
     "public.source": {
