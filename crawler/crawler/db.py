@@ -1,10 +1,8 @@
-import os
-from dotenv import load_dotenv
-from sqlalchemy import create_engine, MetaData, Table
+"""SQLAlchemy DB 연결 (Drizzle이 만든 테이블을 reflection으로 읽음)"""
+from sqlalchemy import create_engine, MetaData
+from crawler.config import DATABASE_URL
 
-load_dotenv()
-
-engine = create_engine(os.getenv("DATABASE_URL"))
+engine = create_engine(DATABASE_URL)
 metadata = MetaData()
 
 # Drizzle가 만든 테이블을 그대로 반영 (autoload)
