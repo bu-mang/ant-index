@@ -6,7 +6,7 @@ from sqlalchemy import select
 def main():
     # DB 연결 테스트
     with engine.connect() as conn:
-        result = conn.execute(select(stocks))
+        result = conn.execute(select(stocks).limit(10))
         rows = result.fetchall()
         print(f"DB 연결 성공! stocks 테이블 행 수: {len(rows)}")
 

@@ -414,6 +414,65 @@ with engine.connect() as conn:
     rows = result.fetchall()
 ```
 
+### with 문 (리소스 자동 관리)
+
+```python
+# JS에는 대응 문법 없음 — try/finally로 직접 해야 함
+# Python: with가 블록 끝나면 자동으로 .close() 호출
+
+# DB 연결
+with engine.connect() as conn:
+    result = conn.execute(select(stocks))
+    rows = result.fetchall()
+# 여기서 자동으로 conn.close()
+
+# 파일 열기
+with open("data.txt") as f:
+    data = f.read()
+# 여기서 자동으로 f.close()
+
+# 풀어쓰면 이것과 같음:
+conn = engine.connect()
+try:
+    result = conn.execute(select(stocks))
+    rows = result.fetchall()
+finally:
+    conn.close()
+```
+
+### `if __name__ == "__main__"` (직접 실행 vs import 구분)
+
+```python
+# python main.py로 직접 실행하면 __name__ == "__main__" → 실행됨
+# 다른 파일에서 import main 하면 __name__ == "main" → 실행 안 됨
+
+def main():
+    print("파이프라인 시작")
+
+if __name__ == "__main__":
+    main()
+```
+
+### SQLAlchemy 쿼리 빌더
+
+```python
+from sqlalchemy import select, insert
+
+# SELECT * FROM stocks
+select(stocks)
+
+# SELECT * FROM stocks WHERE market = 'KOSPI'
+select(stocks).where(stocks.c.market == 'KOSPI')
+
+# SELECT * FROM stocks LIMIT 10
+select(stocks).limit(10)
+
+# Drizzle(JS)과 비교:
+# select(stocks)                          → db.select().from(stocks)
+# select(stocks).where(...)               → db.select().from(stocks).where(eq(...))
+# conn.execute(select(stocks))            → await db.select().from(stocks)
+```
+
 ---
 
 ## 주의할 차이점
