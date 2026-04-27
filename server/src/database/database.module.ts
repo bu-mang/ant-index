@@ -1,5 +1,6 @@
 import { Module, Global } from '@nestjs/common';
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 import * as schema from './schema';
 
 // TypeORM이나 Mongoose는 Nest.js용 공식 통합 패키지가 있다.
@@ -8,7 +9,8 @@ import * as schema from './schema';
 const drizzleProvider = {
   provide: 'drizzle',
   useFactory: () => {
-    return drizzle(process.env.DATABASE_URL!, { schema });
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+    return drizzle(pool, { schema });
   },
 };
 
