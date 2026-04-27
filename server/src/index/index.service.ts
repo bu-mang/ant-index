@@ -9,7 +9,7 @@
 // 데이터가 축적되면 index_snapshots의 스냅샷을 활용하고, 30일 min/max 정규화를 적용할 예정.
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { eq, and, gte, sql } from 'drizzle-orm';
+import { eq, and, gte, sql, desc } from 'drizzle-orm';
 import * as schema from '../database/schema';
 import { StocksService } from '../stocks/stocks.service';
 
@@ -269,6 +269,41 @@ export class IndexService {
           totalPosts: Number(d.totalPosts),
         };
       }),
+    };
+  }
+
+  /**
+   * stocks 테이블에서 analyzer가 생성한 최신 한줄평을 조회한다.
+   *
+   * 반환 예시: { code: "005930", name: "삼성전자", summary: "비관론 소폭 우세, 관망 분위기" }
+   */
+  async getSummary(code: string) {
+    const stock = await this.stocksService.findByCode(code);
+    if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
+
+    return {
+      code: stock.code,
+      name: stock.name,
+      summary: stock.summary ?? null,
+      updatedAt: stock.summaryUpdatedAt ?? null,
+    };
+  }
+
+  /**
+   * market_summary 테이블에서 전체 시장 한줄평을 조회한다.
+   *
+   * 반환 예시: { summary: "시장 전반 관망세, 뚜렷한 방향 없음", updatedAt: "2026-04-27T..." }
+   */
+  async getMarketSummary() {
+    const [row] = await this.db
+      .select()
+      .from(schema.marketSummary)
+      .orderBy(desc(schema.marketSummary.createdAt))
+      .limit(1);
+
+    return {
+      summary: row?.summary ?? null,
+      createdAt: row?.createdAt ?? null,
     };
   }
 }

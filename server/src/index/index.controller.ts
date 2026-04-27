@@ -33,4 +33,21 @@ export class IndexController {
   ) {
     return this.indexService.getGazuaHistory(code, period);
   }
+
+  // GET /api/stocks/:code/summary — 종목 한줄평 (analyzer가 DB에 저장한 것 조회)
+  @Get('summary')
+  getSummary(@Param('code') code: string) {
+    return this.indexService.getSummary(code);
+  }
+}
+
+@Controller('market')
+export class MarketController {
+  constructor(private readonly indexService: IndexService) {}
+
+  // GET /api/market/summary — 전체 시장 한줄평
+  @Get('summary')
+  getMarketSummary() {
+    return this.indexService.getMarketSummary();
+  }
 }

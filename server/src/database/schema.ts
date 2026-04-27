@@ -38,6 +38,8 @@ export const stocks = pgTable('stocks', {
   sector: varchar('sector', { length: 100 }), // 업종 (예: '반도체', 'Technology')
   description: text('description'), // 종목 설명
   isActive: boolean('is_active').notNull().default(true), // 비활성 종목 필터링용
+  summary: text('summary'), // AI 한줄평 (analyzer가 30분마다 갱신)
+  summaryUpdatedAt: timestamp('summary_updated_at'), // 한줄평 갱신 시각
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -96,6 +98,14 @@ export const news = pgTable('news', {
   source: varchar('source', { length: 100 }), // 언론사명
   publishedAt: timestamp('published_at'), // 기사 발행 시각
   crawledAt: timestamp('crawled_at').notNull().defaultNow(), // 크롤링 시각
+});
+
+// ─── market_summary (전체 시장 한줄평) ───
+// analyzer가 30분마다 전 종목 평균 지표로 한줄평을 생성하여 저장. 항상 1행만 유지.
+export const marketSummary = pgTable('market_summary', {
+  id: serial('id').primaryKey(),
+  summary: text('summary').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
 // ─── index_snapshots (지표 스냅샷) ───
