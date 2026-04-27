@@ -20,6 +20,7 @@ export interface Stock {
   isActive: boolean;
   sbIndex: number | null;
   gazuaIndex: number | null;
+  totalPosts: number | null;
   currentPrice: number | null;
   changeRate: number | null;
 }
@@ -48,6 +49,12 @@ export interface IndexHistory {
   data: HistoryDataPoint[];
 }
 
+export interface SummaryResult {
+  code: string;
+  name: string;
+  summary: string;
+}
+
 // ─── API 함수 ───
 
 export const api = {
@@ -58,4 +65,8 @@ export const api = {
     fetchApi<IndexHistory>(`/stocks/${code}/sb/history?period=${period}`),
   getGazuaHistory: (code: string, period = '7d') =>
     fetchApi<IndexHistory>(`/stocks/${code}/gazua/history?period=${period}`),
+  getSummary: (code: string) =>
+    fetchApi<SummaryResult>(`/stocks/${code}/summary`),
+  getMarketSummary: () =>
+    fetchApi<{ summary: string | null; createdAt: string | null }>('/market/summary'),
 };

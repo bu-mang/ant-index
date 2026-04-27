@@ -14,6 +14,7 @@ import {
   useGazuaIndex,
   useSbHistory,
   useGazuaHistory,
+  useSummary,
 } from '@/lib/queries';
 
 export default function StockDetailPage() {
@@ -25,6 +26,7 @@ export default function StockDetailPage() {
   const { data: gazuaIndex, isLoading: gazuaLoading } = useGazuaIndex(code);
   const { data: sbHistory } = useSbHistory(code, period);
   const { data: gazuaHistory } = useGazuaHistory(code, period);
+  const { data: summary } = useSummary(code);
 
   const isLoading = sbLoading || gazuaLoading;
   const stockName = sbIndex?.name ?? gazuaIndex?.name ?? code;
@@ -53,6 +55,17 @@ export default function StockDetailPage() {
         <h1 className="text-2xl font-bold">{stockName}</h1>
         <Badge variant="secondary">{code}</Badge>
       </div>
+
+      {/* AI 한줄평 */}
+      {summary?.summary && (
+        <Card>
+          <CardContent className="py-4">
+            <p className="text-sm text-muted-foreground text-center">
+              {summary.summary}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 게이지 섹션 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

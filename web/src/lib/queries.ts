@@ -49,3 +49,20 @@ export function useGazuaHistory(code: string, period = '7d') {
     enabled: !!code,
   });
 }
+
+export function useSummary(code: string) {
+  return useQuery({
+    queryKey: ['summary', code],
+    queryFn: () => api.getSummary(code),
+    staleTime: STALE_TIME,
+    enabled: !!code,
+  });
+}
+
+export function useMarketSummary() {
+  return useQuery({
+    queryKey: ['market-summary'],
+    queryFn: api.getMarketSummary,
+    staleTime: STALE_TIME,
+  });
+}
