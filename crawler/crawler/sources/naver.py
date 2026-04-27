@@ -87,6 +87,8 @@ def crawl_post_detail(stock_code, nid):
     for query in queries:
         result = query.get("state", {}).get("data", {}).get("result", {})
         if isinstance(result, dict) and "contentHtml" in result:
+            if not result["contentHtml"]:
+                return None
             content_soup = BeautifulSoup(result["contentHtml"], "html.parser")
             return {
                 "title": result.get("title", ""),

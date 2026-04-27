@@ -96,4 +96,8 @@ def ask_ollama_batch(items, price):
             "temperature": 0.5,
         }
     })
-    return json.loads(response.json()["response"])
+    try:
+        return json.loads(response.json()["response"])
+    except (json.JSONDecodeError, KeyError):
+        print("  ⚠ JSON 파싱 실패, 이 배치 건너뜀")
+        return {}
