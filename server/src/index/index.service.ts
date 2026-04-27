@@ -238,7 +238,7 @@ export class IndexService {
 
     const daily = await this.db
       .select({
-        date: sql<string>`date_trunc('day', ${schema.posts.crawledAt})::date::text`,
+        date: sql<string>`date_trunc('day', ${schema.posts.crawledAt} AT TIME ZONE 'Asia/Seoul')::date::text`,
         totalWeight: sql<string>`sum(1 + log(greatest(${schema.posts.likeCount}, 0) + 1))`,
         targetWeight: sql<string>`sum(case when ${schema.posts.sentimentLabel} = ${targetSentiment} then 1 + log(greatest(${schema.posts.likeCount}, 0) + 1) else 0 end)`,
         totalPosts: sql<string>`count(*)::text`,
@@ -251,8 +251,12 @@ export class IndexService {
           sql`${schema.posts.sentimentLabel} is not null`,
         ),
       )
-      .groupBy(sql`date_trunc('day', ${schema.posts.crawledAt})`)
-      .orderBy(sql`date_trunc('day', ${schema.posts.crawledAt})`);
+      .groupBy(
+        sql`date_trunc('day', ${schema.posts.crawledAt} AT TIME ZONE 'Asia/Seoul')`,
+      )
+      .orderBy(
+        sql`date_trunc('day', ${schema.posts.crawledAt} AT TIME ZONE 'Asia/Seoul')`,
+      );
 
     return {
       code: stock.code,

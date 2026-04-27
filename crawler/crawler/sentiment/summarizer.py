@@ -4,7 +4,7 @@ import requests
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, func, case
 from crawler.config import OLLAMA_URL, OLLAMA_MODEL
-from crawler.db import engine, posts, stocks, stock_prices
+from crawler.db import engine, posts, stocks, stock_prices, insert_snapshot
 from crawler.sources.naver import crawl_kospi
 
 STOCK_SUMMARY_PROMPT = """너는 주식 시장 분위기 요약가야. 아래 지표를 보고 한줄평을 작성해.
@@ -163,6 +163,20 @@ def generate_summary(stock_id, stock_name, stock_code):
     )
 
     return call_ollama(prompt)
+
+
+def save_snapshots(stock_id):
+    """종목의 SB/GAZUA 스냅샷을 index_snapshots에 저장"""
+    sb, gazua, total_posts = calculate_index(stock_id)
+    if total_posts == 0:
+        return
+
+    now = datetime.now(timezone.utc)
+    period_end = now
+    period_start = now - timedelta(hours=24)
+
+    insert_snapshot(stock_id, "SB", sb, sb, total_posts, period_start, period_end)
+    insert_snapshot(stock_id, "GAZUA", gazua, gazua, total_posts, period_start, period_end)
 
 
 def get_market_price_stats():

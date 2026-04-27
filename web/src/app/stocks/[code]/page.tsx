@@ -1,33 +1,36 @@
 // 종목 상세 페이지 — 개별 종목의 ㅅㅂ지수/가즈아지수 게이지 + 시계열 차트
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { GaugeChart } from '@/components/gauge-chart';
-import { TimeSeriesChart } from '@/components/time-series-chart';
-import { PeriodSelector } from '@/components/period-selector';
+import { useState } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { GaugeChart } from "@/components/gauge-chart";
+import { TimeSeriesChart } from "@/components/time-series-chart";
+import { PeriodSelector } from "@/components/period-selector";
 import {
+  useStocks,
   useSbIndex,
   useGazuaIndex,
   useSbHistory,
   useGazuaHistory,
   useSummary,
-} from '@/lib/queries';
+} from "@/lib/queries";
 
 export default function StockDetailPage() {
   const params = useParams();
   const code = params.code as string;
-  const [period, setPeriod] = useState('30d');
+  const [period, setPeriod] = useState("30d");
 
   const { data: sbIndex, isLoading: sbLoading } = useSbIndex(code);
   const { data: gazuaIndex, isLoading: gazuaLoading } = useGazuaIndex(code);
   const { data: sbHistory } = useSbHistory(code, period);
   const { data: gazuaHistory } = useGazuaHistory(code, period);
   const { data: summary } = useSummary(code);
+  const { data: stocks } = useStocks();
 
+  const stock = stocks?.find((s) => s.code === code);
   const isLoading = sbLoading || gazuaLoading;
   const stockName = sbIndex?.name ?? gazuaIndex?.name ?? code;
 
@@ -54,6 +57,23 @@ export default function StockDetailPage() {
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-bold">{stockName}</h1>
         <Badge variant="secondary">{code}</Badge>
+        {stock && stock.currentPrice != null && (
+          <span className="text-lg font-semibold ml-auto">
+            {stock.currentPrice.toLocaleString()}원
+            <span
+              className={`ml-2 text-sm ${
+                (stock.changeRate ?? 0) > 0
+                  ? "text-red-500"
+                  : (stock.changeRate ?? 0) < 0
+                    ? "text-blue-500"
+                    : "text-muted-foreground"
+              }`}
+            >
+              {(stock.changeRate ?? 0) > 0 ? "+" : ""}
+              {stock.changeRate?.toFixed(2)}%
+            </span>
+          </span>
+        )}
       </div>
 
       {/* AI 한줄평 */}
@@ -73,7 +93,7 @@ export default function StockDetailPage() {
           <CardContent className="pt-6 flex justify-center">
             <GaugeChart
               value={sbIndex?.value ?? 0}
-              label={sbIndex?.label ?? '-'}
+              label={sbIndex?.label ?? "-"}
               title="ㅅㅂ지수"
               color="red"
               totalPosts={sbIndex?.totalPosts}
@@ -85,7 +105,7 @@ export default function StockDetailPage() {
           <CardContent className="pt-6 flex justify-center">
             <GaugeChart
               value={gazuaIndex?.value ?? 0}
-              label={gazuaIndex?.label ?? '-'}
+              label={gazuaIndex?.label ?? "-"}
               title="가즈아지수"
               color="green"
               totalPosts={gazuaIndex?.totalPosts}

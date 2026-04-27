@@ -136,3 +136,19 @@ def insert_market_summary(summary):
     with engine.connect() as conn:
         conn.execute(insert(market_summary).values(summary=summary))
         conn.commit()
+
+
+def insert_snapshot(stock_id, index_type, index_value, raw_score, total_posts, period_start, period_end, period_type="DAILY"):
+    """지표 스냅샷 INSERT"""
+    with engine.connect() as conn:
+        conn.execute(insert(index_snapshots).values(
+            stock_id=stock_id,
+            index_type=index_type,
+            index_value=index_value,
+            raw_score=raw_score,
+            total_posts=total_posts,
+            period_start=period_start,
+            period_end=period_end,
+            period_type=period_type,
+        ))
+        conn.commit()

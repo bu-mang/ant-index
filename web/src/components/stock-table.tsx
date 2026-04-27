@@ -31,6 +31,8 @@ export function StockTable({ stocks }: StockTableProps) {
         <TableRow>
           <TableHead>종목</TableHead>
           <TableHead>섹터</TableHead>
+          <TableHead className="text-right">현재가</TableHead>
+          <TableHead className="text-right">등락률</TableHead>
           <TableHead className="text-right">ㅅㅂ지수</TableHead>
           <TableHead className="text-right">가즈아지수</TableHead>
         </TableRow>
@@ -55,6 +57,24 @@ export function StockTable({ stocks }: StockTableProps) {
                   {stock.sector}
                 </Badge>
               )}
+            </TableCell>
+            <TableCell className="text-right">
+              {stock.currentPrice != null
+                ? stock.currentPrice.toLocaleString() + '원'
+                : '-'}
+            </TableCell>
+            <TableCell
+              className={`text-right ${
+                (stock.changeRate ?? 0) > 0
+                  ? 'text-red-500'
+                  : (stock.changeRate ?? 0) < 0
+                    ? 'text-blue-500'
+                    : 'text-muted-foreground'
+              }`}
+            >
+              {stock.changeRate != null
+                ? `${stock.changeRate > 0 ? '+' : ''}${stock.changeRate.toFixed(2)}%`
+                : '-'}
             </TableCell>
             <TableCell
               className={`text-right ${getIndexColor(stock.sbIndex)}`}

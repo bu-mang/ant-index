@@ -15,7 +15,7 @@ from datetime import datetime
 from crawler.db import get_active_stocks, insert_post, insert_price, get_unanalyzed_posts, update_sentiment, delete_old_posts, update_summary, insert_market_summary
 from crawler.sources.naver import crawl_board, crawl_post_detail, crawl_price
 from crawler.sentiment.analyzer import ask_ollama_batch
-from crawler.sentiment.summarizer import generate_summary, generate_market_summary
+from crawler.sentiment.summarizer import generate_summary, generate_market_summary, save_snapshots
 
 LOOP_INTERVAL = 30 * 60  # 30분 (초)
 
@@ -130,6 +130,7 @@ def generate_summaries():
 
     for stock in stocks:
         try:
+            save_snapshots(stock.id)
             summary = generate_summary(stock.id, stock.name, stock.code)
             if summary:
                 update_summary(stock.id, summary)
