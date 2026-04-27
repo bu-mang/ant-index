@@ -111,6 +111,33 @@ def crawl_price(stock_code):
     }
 
 
+def crawl_kospi():
+    """네이버증권에서 코스피 지수 현재값 + 등락률 크롤링"""
+    url = f"{BASE_URL}/sise/sise_index.naver?code=KOSPI"
+    response = requests.get(url, headers=get_headers())
+    response.raise_for_status()
+
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    now_val = soup.select_one("#now_value")
+    if not now_val:
+        return None
+
+    value = float(now_val.get_text(strip=True).replace(",", ""))
+
+    change_rate = 0.0
+    rate_el = soup.select_one("#change_value_and_rate")
+    if rate_el:
+        # 텍스트에서 "+2.15%" 같은 부분 추출
+        import re
+        text = rate_el.get_text(" ", strip=True)
+        match = re.search(r'([+-]?\d+\.\d+)%', text)
+        if match:
+            change_rate = float(match.group(1))
+
+    return {"value": value, "change_rate": change_rate}
+
+
 def crawl_post_detail(stock_code, nid):
     """글 상세 페이지에서 본문 텍스트를 가져옴"""
     iframe_url = f"https://m.stock.naver.com/pc/domestic/stock/{stock_code}/discussion/{nid}"
