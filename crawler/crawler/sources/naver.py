@@ -2,6 +2,7 @@
 import requests
 import random
 import json
+import time
 from bs4 import BeautifulSoup
 
 BASE_URL = "https://finance.naver.com"
@@ -18,56 +19,96 @@ def get_headers():
     return {"User-Agent": random.choice(DESKTOP_USER_AGENTS)}
 
 
-def crawl_board(stock_code, page=1):
-    """종목토론실 글 목록 크롤링 (1페이지 = 약 20개 글)"""
-    url = f"{BASE_URL}/item/board.naver?code={stock_code}&page={page}"
+def crawl_board(stock_code, pages=5):
+    """종목토론실 글 목록 크롤링 (pages 페이지만큼, 페이지당 약 20개 글)"""
+    all_posts = []
+
+    for page in range(1, pages + 1):
+        url = f"{BASE_URL}/item/board.naver?code={stock_code}&page={page}"
+        response = requests.get(url, headers=get_headers())
+        response.raise_for_status()
+
+        soup = BeautifulSoup(response.text, "html.parser")
+        table = soup.find("table", class_="type2")
+
+        if not table:
+            break
+
+        rows = table.find_all("tr")
+
+        for row in rows:
+            cells = row.find_all("td")
+            if len(cells) < 6:
+                continue
+
+            link = row.find("a")
+            if not link or not link.get("href"):
+                continue
+            href = link["href"]
+
+            if "board_read" not in href:
+                continue
+
+            nid = None
+            for param in href.split("&"):
+                if param.startswith("nid="):
+                    nid = param.split("=")[1]
+                    break
+
+            if not nid:
+                continue
+
+            post = {
+                "nid": nid,
+                "date": cells[0].get_text(strip=True),
+                "title": cells[1].get_text(strip=True),
+                "author": cells[2].get_text(strip=True),
+                "views": int(cells[3].get_text(strip=True).replace(",", "") or 0),
+                "likes": int(cells[4].get_text(strip=True).replace(",", "") or 0),
+                "dislikes": int(cells[5].get_text(strip=True).replace(",", "") or 0),
+                "url": f"{BASE_URL}{href}",
+            }
+            all_posts.append(post)
+
+        time.sleep(random.uniform(1, 2))  # 페이지 간 딜레이
+
+    return all_posts
+
+
+def crawl_price(stock_code):
+    """네이버증권에서 현재가, 등락률 크롤링"""
+    url = f"{BASE_URL}/item/main.naver?code={stock_code}"
     response = requests.get(url, headers=get_headers())
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, "html.parser")
-    table = soup.find("table", class_="type2")
 
-    if not table:
-        return []
+    # 현재가
+    no_today = soup.select_one("p.no_today .blind")
+    if not no_today:
+        return None
 
-    posts = []
-    rows = table.find_all("tr")
+    current_price = int(no_today.get_text(strip=True).replace(",", ""))
 
-    for row in rows:
-        cells = row.find_all("td")
-        if len(cells) < 6:
-            continue
+    # 등락률 (첫 번째 no_exday)
+    exday = soup.select_one("p.no_exday")
+    change_rate = 0.0
+    if exday:
+        ems = exday.select("em")
+        # 두 번째 em이 등락률 (%)
+        if len(ems) >= 2:
+            rate_blind = ems[1].select_one(".blind")
+            if rate_blind:
+                rate = float(rate_blind.get_text(strip=True))
+                # no_down이면 음수
+                if "no_down" in ems[1].get("class", []):
+                    rate = -rate
+                change_rate = rate
 
-        link = row.find("a")
-        if not link or not link.get("href"):
-            continue
-        href = link["href"]
-
-        if "board_read" not in href:
-            continue
-
-        nid = None
-        for param in href.split("&"):
-            if param.startswith("nid="):
-                nid = param.split("=")[1]
-                break
-
-        if not nid:
-            continue
-
-        post = {
-            "nid": nid,
-            "date": cells[0].get_text(strip=True),
-            "title": cells[1].get_text(strip=True),
-            "author": cells[2].get_text(strip=True),
-            "views": int(cells[3].get_text(strip=True).replace(",", "") or 0),
-            "likes": int(cells[4].get_text(strip=True).replace(",", "") or 0),
-            "dislikes": int(cells[5].get_text(strip=True).replace(",", "") or 0),
-            "url": f"{BASE_URL}{href}",
-        }
-        posts.append(post)
-
-    return posts
+    return {
+        "current_price": current_price,
+        "change_rate": change_rate,
+    }
 
 
 def crawl_post_detail(stock_code, nid):

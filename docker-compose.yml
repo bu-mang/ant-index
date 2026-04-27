@@ -9,5 +9,26 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  crawler:
+    build: ./crawler
+    container_name: antindex-crawler
+    restart: unless-stopped
+    command: ["python", "main.py", "loop-crawl"]
+    environment:
+      - DATABASE_URL=postgresql://antindex:antindex2026@db:5432/antindex
+    depends_on:
+      - db
+
+  analyzer:
+    build: ./crawler
+    container_name: antindex-analyzer
+    restart: unless-stopped
+    command: ["python", "main.py", "loop-analyze"]
+    environment:
+      - DATABASE_URL=postgresql://antindex:antindex2026@db:5432/antindex
+      - OLLAMA_URL=http://host.docker.internal:11434
+    depends_on:
+      - db
+
 volumes:
   pgdata:

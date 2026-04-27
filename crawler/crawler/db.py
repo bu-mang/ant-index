@@ -1,6 +1,6 @@
 """SQLAlchemy DB 연결 (Drizzle이 만든 테이블을 reflection으로 읽음)"""
-from datetime import datetime
-from sqlalchemy import create_engine, MetaData, select, insert, update
+from datetime import datetime, timedelta
+from sqlalchemy import create_engine, MetaData, select, insert, update, delete
 from crawler.config import DATABASE_URL
 
 engine = create_engine(DATABASE_URL)
@@ -79,4 +79,60 @@ def update_sentiment(post_id, label, reason):
                 analyzed_at=datetime.now(),
             )
         )
+        conn.commit()
+
+
+def delete_old_posts(days=365):
+    """crawled_at 기준으로 days일 이전 글 삭제. 삭제된 행 수 반환."""
+    cutoff = datetime.now() - timedelta(days=days)
+    with engine.connect() as conn:
+        result = conn.execute(
+            delete(posts).where(posts.c.crawled_at < cutoff)
+        )
+        conn.commit()
+        return result.rowcount
+
+
+def insert_price(stock_id, current_price, change_rate):
+    """시세 INSERT"""
+    with engine.connect() as conn:
+        conn.execute(insert(stock_prices).values(
+            stock_id=stock_id,
+            current_price=current_price,
+            change_rate=change_rate,
+        ))
+        conn.commit()
+
+
+def get_latest_price(stock_id):
+    """종목 최신 시세 조회"""
+    with engine.connect() as conn:
+        result = conn.execute(
+            select(stock_prices)
+            .where(stock_prices.c.stock_id == stock_id)
+            .order_by(stock_prices.c.updated_at.desc())
+            .limit(1)
+        ).fetchone()
+        return result
+
+
+def update_summary(stock_id, summary):
+    """종목 한줄평 업데이트"""
+    with engine.connect() as conn:
+        conn.execute(
+            update(stocks)
+            .where(stocks.c.id == stock_id)
+            .values(
+                summary=summary,
+                summary_updated_at=datetime.now(),
+            )
+        )
+        conn.commit()
+
+
+def insert_market_summary(summary):
+    """전체 시장 한줄평 INSERT (append-only)"""
+    market_summary = metadata.tables["market_summary"]
+    with engine.connect() as conn:
+        conn.execute(insert(market_summary).values(summary=summary))
         conn.commit()
