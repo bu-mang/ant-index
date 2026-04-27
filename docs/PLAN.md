@@ -79,40 +79,55 @@
 
 ```
 ant-index/
-├── crawler/                       # Python 크롤러 (독립 배치 프로세스)
-│   ├── sources/
-│   │   ├── naver.py               # 네이버증권 크롤러 (requests + BS4)
-│   │   ├── toss.py                # 토스증권 크롤러 (Playwright)
-│   │   └── base.py                # 추상 베이스 클래스
-│   ├── sentiment/
-│   │   └── analyzer.py            # Exaone + Ollama 감성 분석 (배치 프롬프트)
-│   ├── main.py                    # 크롤링 엔트리포인트
+├── crawler/                       # Python 크롤러 + 감성분석 + 한줄평
+│   ├── crawler/
+│   │   ├── sources/
+│   │   │   └── naver.py           # 네이버증권 크롤러 (종토방 + 시세 + 코스피)
+│   │   ├── sentiment/
+│   │   │   ├── analyzer.py        # Exaone 감성분석 (배치)
+│   │   │   └── summarizer.py      # 한줄평 생성 + 스냅샷 저장
+│   │   ├── db.py                  # SQLAlchemy (reflection)
+│   │   └── config.py              # 환경변수
+│   ├── main.py                    # 엔트리포인트 (loop-crawl / loop-analyze)
 │   ├── requirements.txt
 │   └── Dockerfile
-├── server/                        # Nest.js (지표 계산 + API)
+├── server/                        # NestJS (지표 계산 + API)
 │   ├── src/
-│   │   ├── index/                 # 지표 계산 + REST API
-│   │   ├── stock/                 # 종목 관리
-│   │   └── database/              # Drizzle ORM + PostgreSQL 설정
-│   ├── package.json
-│   └── Dockerfile
+│   │   ├── index/                 # 지표 계산 + 한줄평 + 히스토리
+│   │   ├── stocks/                # 종목 조회 + 시세
+│   │   └── database/              # Drizzle ORM + PostgreSQL
+│   ├── drizzle/                   # 마이그레이션 SQL
+│   └── package.json
 ├── web/                           # Next.js (대시보드)
 │   ├── src/
 │   │   ├── app/                   # App Router (/, /stocks/[code])
-│   │   └── components/            # GaugeChart, TimeSeriesChart, StockTable
-│   ├── package.json
-│   └── Dockerfile
-├── docker-compose.yml
+│   │   ├── components/            # GaugeChart, TimeSeriesChart, StockTable
+│   │   └── lib/                   # API 래퍼, TanStack Query hooks
+│   └── package.json
+├── docker-compose.yml             # db + crawler + analyzer
 ├── .env
-└── PLAN.md
+└── docs/
+    ├── PLAN.md
+    └── IMPLEMENT.md
 ```
 
 ## 데이터 흐름
 
 ```
-Python 크롤러 (cron) → 글 수집 → Exaone (Ollama) 감성 분류 → PostgreSQL에 저장
-                                                                    ↓
-Next.js 대시보드 ← REST API ← Nest.js (DB 읽어서 지표 계산)
+[crawler 컨테이너] 30분 주기
+  네이버증권 크롤링 → posts 저장 + stock_prices 저장
+
+[analyzer 컨테이너] 30분 주기
+  미분석 글 감성분석 → posts 업데이트
+  → 종목별 SB/GAZUA 스냅샷 저장 (index_snapshots)
+  → 종목별 한줄평 생성 (stocks.summary)
+  → 전체 시장 한줄평 생성 (market_summary)
+
+[NestJS 서버]
+  DB에서 읽기만 — 실시간 지표 계산 + REST API 제공
+
+[Next.js 대시보드]
+  NestJS API 호출 → 게이지, 차트, 테이블 렌더링
 ```
 
 ### DB 접근 아키텍처
@@ -401,6 +416,16 @@ playwright install chromium
 | source      | varchar     | 출처        |
 | publishedAt | timestamp   | 발행 시각   |
 | crawledAt   | timestamp   | 크롤링 시각 |
+
+#### market_summary (전체 시장 한줄평)
+
+| 컬럼      | 타입      | 설명                          |
+| --------- | --------- | ----------------------------- |
+| id        | serial PK |                               |
+| summary   | text      | AI 생성 시장 한줄평           |
+| createdAt | timestamptz | 생성 시각                   |
+
+- append-only: 30분마다 새 행 추가, 최신 1건 조회
 
 #### index_snapshots (지표 스냅샷)
 
@@ -729,26 +754,20 @@ GET /api/stocks/:code/fear-greed             # 종목별 공탐지수
 
 ## 구현 순서
 
-### Phase 1: MVP — 커뮤니티 감성 지표 (ㅅㅂ지수 + 가즈아지수)
+### Phase 1: MVP — 커뮤니티 감성 지표 (ㅅㅂ지수 + 가즈아지수) ✅ 완료
 
-**Step 1: 크롤러 먼저 가동 (데이터 축적 30일)**
-
-- Docker Compose 프로젝트 셋업
-- PostgreSQL + DB 엔티티
-- curated 종목 30개 리스트 (국내, 커뮤니티 화력 기준) — MVP는 국내 30개만, 미국 30개는 토스증권 크롤러 추가 후 확장
-- Python 크롤러: 네이버증권 + 토스증권
-- Ollama + Exaone 3.5 2.4B 감성 분석 파이프라인
-- 5개 종목 테스트 → 60개 확장
-- 크롤러 가동 시작 → 30일간 데이터 축적
-
-**Step 2: 서버 + 프론트 (크롤러 가동과 병행)**
-
-- Nest.js + Drizzle ORM + PostgreSQL 설정
-- ㅅㅂ지수 / 가즈아지수 계산 로직
-- REST API 엔드포인트
-- Next.js 대시보드 (게이지 차트, 시계열, 종목 테이블)
-
-**Step 3: 지표 공개 (30일 데이터 축적 완료 후)**
+- ✅ Docker Compose (db + crawler + analyzer)
+- ✅ PostgreSQL + Drizzle 스키마 (6개 테이블, timestamptz)
+- ✅ 국내 종목 30개 시드 데이터
+- ✅ 네이버증권 크롤러 (종토방 5페이지 + 시세 + 코스피 지수)
+- ✅ Exaone 3.5 2.4B 감성분석 파이프라인
+- ✅ 지표 계산 (좋아요 가중 SB/GAZUA)
+- ✅ 한줄평 (종목별 + 시장 전체, Ollama 생성)
+- ✅ 스냅샷 저장 (index_snapshots, 30분마다)
+- ✅ NestJS REST API
+- ✅ Next.js 대시보드 (게이지, 시계열, 종목 테이블, 한줄평)
+- ✅ 30분 주기 자동 운영 (Docker restart: unless-stopped)
+- 🔄 데이터 축적 중 (30일 후 정규화 적용 예정)
 
 ### Phase 2: 나스닥 공탐지수
 
