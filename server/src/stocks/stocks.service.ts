@@ -1,7 +1,7 @@
 // 종목 서비스 — DB에서 종목 정보를 조회하고, 최신 지표/시세를 함께 반환한다.
 import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, and, gte, sql, desc } from 'drizzle-orm';
 import * as schema from '../database/schema';
 
 @Injectable()
@@ -42,18 +42,16 @@ export class StocksService {
     // 종목 수만큼 Promise.all로 병렬 조회 — 순차보다 훨씬 빠름
     const results = await Promise.all(
       stockList.map(async (stock) => {
-        const [latestSb, latestGazua, latestPrice] = await Promise.all([
-          this.getLatestIndex(stock.id, 'SB'),
-          this.getLatestIndex(stock.id, 'GAZUA'),
+        const [liveIndex, latestPrice] = await Promise.all([
+          this.calculateLiveIndex(stock.id),
           this.getLatestPrice(stock.id),
         ]);
 
         return {
           ...stock,
-          sbIndex: latestSb?.indexValue ? Number(latestSb.indexValue) : null,
-          gazuaIndex: latestGazua?.indexValue
-            ? Number(latestGazua.indexValue)
-            : null,
+          sbIndex: liveIndex.sb,
+          gazuaIndex: liveIndex.gazua,
+          totalPosts: liveIndex.totalPosts,
           currentPrice: latestPrice?.currentPrice ?? null,
           changeRate: latestPrice?.changeRate
             ? Number(latestPrice.changeRate)
@@ -81,30 +79,45 @@ export class StocksService {
   }
 
   /**
-   * index_snapshots에서 해당 종목의 최신 지표 스냅샷 1개를 가져온다.
-   * 아직 스냅샷이 쌓이지 않았으면 null 반환.
+   * posts에서 최근 24시간 감성분석 결과를 실시간 집계하여 ㅅㅂ/가즈아 지수를 계산한다.
+   * IndexService.calculateLiveIndex와 동일한 로직.
    *
-   * 반환 예시: { indexValue: "37.40", rawScore: "0.3740", totalPosts: 49, periodEnd: Date } | null
+   * 반환 예시: { sb: 37.4, gazua: 17.57, totalPosts: 49 }
    */
-  private async getLatestIndex(stockId: number, indexType: 'SB' | 'GAZUA') {
-    const [row] = await this.db
+  private async calculateLiveIndex(stockId: number) {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const result = await this.db
       .select({
-        indexValue: schema.indexSnapshots.indexValue,
-        rawScore: schema.indexSnapshots.rawScore,
-        totalPosts: schema.indexSnapshots.totalPosts,
-        periodEnd: schema.indexSnapshots.periodEnd,
+        totalWeight: sql<string>`sum(1 + log(greatest(${schema.posts.likeCount}, 0) + 1))`,
+        bullWeight: sql<string>`sum(case when ${schema.posts.sentimentLabel} = 'BULL' then 1 + log(greatest(${schema.posts.likeCount}, 0) + 1) else 0 end)`,
+        bearWeight: sql<string>`sum(case when ${schema.posts.sentimentLabel} = 'BEAR' then 1 + log(greatest(${schema.posts.likeCount}, 0) + 1) else 0 end)`,
+        totalPosts: sql<string>`count(*)::text`,
       })
-      .from(schema.indexSnapshots)
+      .from(schema.posts)
       .where(
         and(
-          eq(schema.indexSnapshots.stockId, stockId),
-          eq(schema.indexSnapshots.indexType, indexType),
+          eq(schema.posts.stockId, stockId),
+          gte(schema.posts.crawledAt, since),
+          sql`${schema.posts.sentimentLabel} is not null`,
         ),
-      )
-      .orderBy(desc(schema.indexSnapshots.periodEnd))
-      .limit(1);
+      );
 
-    return row ?? null;
+    const row = result[0];
+    const totalWeight = Number(row?.totalWeight) || 0;
+    const bullWeight = Number(row?.bullWeight) || 0;
+    const bearWeight = Number(row?.bearWeight) || 0;
+    const totalPosts = Number(row?.totalPosts) || 0;
+
+    if (totalWeight === 0) {
+      return { sb: 0, gazua: 0, totalPosts: 0 };
+    }
+
+    return {
+      sb: Math.round((bearWeight / totalWeight) * 100 * 100) / 100,
+      gazua: Math.round((bullWeight / totalWeight) * 100 * 100) / 100,
+      totalPosts,
+    };
   }
 
   /**
