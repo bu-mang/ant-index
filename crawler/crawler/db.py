@@ -1,5 +1,5 @@
 """SQLAlchemy DB 연결 (Drizzle이 만든 테이블을 reflection으로 읽음)"""
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import create_engine, MetaData, select, insert, update, delete
 from crawler.config import DATABASE_URL
 
@@ -76,7 +76,7 @@ def update_sentiment(post_id, label, reason):
             .values(
                 sentiment_label=db_label,
                 sentiment_reason=reason,
-                analyzed_at=datetime.now(),
+                analyzed_at=datetime.now(timezone.utc),
             )
         )
         conn.commit()
@@ -84,7 +84,7 @@ def update_sentiment(post_id, label, reason):
 
 def delete_old_posts(days=365):
     """crawled_at 기준으로 days일 이전 글 삭제. 삭제된 행 수 반환."""
-    cutoff = datetime.now() - timedelta(days=days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     with engine.connect() as conn:
         result = conn.execute(
             delete(posts).where(posts.c.crawled_at < cutoff)
@@ -124,7 +124,7 @@ def update_summary(stock_id, summary):
             .where(stocks.c.id == stock_id)
             .values(
                 summary=summary,
-                summary_updated_at=datetime.now(),
+                summary_updated_at=datetime.now(timezone.utc),
             )
         )
         conn.commit()

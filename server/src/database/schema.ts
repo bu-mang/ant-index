@@ -39,9 +39,13 @@ export const stocks = pgTable('stocks', {
   description: text('description'), // 종목 설명
   isActive: boolean('is_active').notNull().default(true), // 비활성 종목 필터링용
   summary: text('summary'), // AI 한줄평 (analyzer가 30분마다 갱신)
-  summaryUpdatedAt: timestamp('summary_updated_at'), // 한줄평 갱신 시각
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  summaryUpdatedAt: timestamp('summary_updated_at', { withTimezone: true }), // 한줄평 갱신 시각
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 // ─── stock_prices (종목 시세) ───
@@ -60,7 +64,9 @@ export const stockPrices = pgTable('stock_prices', {
   dividendYield: decimal('dividend_yield', { precision: 6, scale: 2 }), // 배당수익률 (%)
   high52w: integer('high_52w'), // 52주 최고가
   low52w: integer('low_52w'), // 52주 최저가
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 // ─── posts (크롤링 글/댓글) ───
@@ -81,9 +87,11 @@ export const posts = pgTable('posts', {
   dislikeCount: integer('dislike_count').notNull().default(0), // 비추천수
   sentimentLabel: sentimentEnum('sentiment_label'), // LLM 감성분석 결과 (null = 미분석)
   sentimentReason: text('sentiment_reason'), // 감성 판단 사유
-  analyzedAt: timestamp('analyzed_at'), // 분석 시점
-  postedAt: timestamp('posted_at'), // 원본 작성 시각
-  crawledAt: timestamp('crawled_at').notNull().defaultNow(), // 크롤링 시각
+  analyzedAt: timestamp('analyzed_at', { withTimezone: true }), // 분석 시점
+  postedAt: timestamp('posted_at', { withTimezone: true }), // 원본 작성 시각
+  crawledAt: timestamp('crawled_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(), // 크롤링 시각
 });
 
 // ─── news (뉴스 링크) ───
@@ -96,8 +104,10 @@ export const news = pgTable('news', {
   title: varchar('title', { length: 500 }).notNull(), // 기사 제목
   url: varchar('url', { length: 1000 }).notNull(), // 기사 원문 링크
   source: varchar('source', { length: 100 }), // 언론사명
-  publishedAt: timestamp('published_at'), // 기사 발행 시각
-  crawledAt: timestamp('crawled_at').notNull().defaultNow(), // 크롤링 시각
+  publishedAt: timestamp('published_at', { withTimezone: true }), // 기사 발행 시각
+  crawledAt: timestamp('crawled_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(), // 크롤링 시각
 });
 
 // ─── market_summary (전체 시장 한줄평) ───
@@ -105,7 +115,9 @@ export const news = pgTable('news', {
 export const marketSummary = pgTable('market_summary', {
   id: serial('id').primaryKey(),
   summary: text('summary').notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 // ─── index_snapshots (지표 스냅샷) ───
@@ -118,8 +130,10 @@ export const indexSnapshots = pgTable('index_snapshots', {
   rawScore: decimal('raw_score', { precision: 10, scale: 4 }).notNull(), // 정규화 전 원시 점수
   totalPosts: integer('total_posts').notNull().default(0), // 집계에 사용된 글 수
   postChangeRate: decimal('post_change_rate', { precision: 8, scale: 2 }), // 전 구간 대비 글 증가율 (%)
-  periodStart: timestamp('period_start').notNull(), // 집계 구간 시작
-  periodEnd: timestamp('period_end').notNull(), // 집계 구간 종료
+  periodStart: timestamp('period_start', { withTimezone: true }).notNull(), // 집계 구간 시작
+  periodEnd: timestamp('period_end', { withTimezone: true }).notNull(), // 집계 구간 종료
   periodType: periodTypeEnum('period_type').notNull(), // 집계 주기 (HOURLY, DAILY)
-  createdAt: timestamp('created_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });

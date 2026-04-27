@@ -15,6 +15,13 @@
       "when": 1777294987613,
       "tag": "0001_white_proteus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777304727123,
+      "tag": "0002_slippery_prism",
+      "breakpoints": true
     }
   ]
 }
