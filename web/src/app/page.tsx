@@ -102,7 +102,7 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              <div className="flex gap-12">
+              <div className="flex gap-12 max-w-150">
                 <GaugeChart
                   value={avgSb.value}
                   label={avgSb.label}

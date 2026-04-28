@@ -1,11 +1,11 @@
 // 게이지 차트 — 0~100 반원형 게이지로 지표값을 시각화
-'use client';
+"use client";
 
 interface GaugeChartProps {
   value: number; // 0~100
   label: string; // "평온", "극도의 분노" 등
   title: string; // "ㅅㅂ지수", "가즈아지수"
-  color: 'red' | 'green';
+  color: "red" | "green";
   totalPosts?: number;
 }
 
@@ -18,18 +18,18 @@ export function GaugeChart({
 }: GaugeChartProps) {
   // 게이지 각도 계산 (0~180도)
   const angle = (value / 100) * 180;
-  const colorClass = color === 'red' ? 'text-red-500' : 'text-green-500';
+  const colorClass = color === "red" ? "text-red-500" : "text-green-500";
   const bgGradient =
-    color === 'red'
-      ? 'from-red-500/20 to-red-500/5'
-      : 'from-green-500/20 to-green-500/5';
+    color === "red"
+      ? "from-red-500/20 to-red-500/5"
+      : "from-green-500/20 to-green-500/5";
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-2 flex-1">
       <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
 
       {/* SVG 반원 게이지 */}
-      <div className="relative w-48 h-28">
+      <div className="relative w-full aspect-200/110">
         <svg viewBox="0 0 200 110" className="w-full h-full">
           {/* 배경 호 */}
           <path
@@ -56,7 +56,7 @@ export function GaugeChart({
             y="85"
             textAnchor="middle"
             className={`${colorClass} fill-current text-3xl font-bold`}
-            style={{ fontSize: '36px', fontWeight: 700 }}
+            style={{ fontSize: "36px", fontWeight: 700 }}
           >
             {value.toFixed(1)}
           </text>
@@ -65,7 +65,7 @@ export function GaugeChart({
 
       {/* 레이블 */}
       <span
-        className={`text-sm font-semibold px-3 py-1 rounded-full bg-gradient-to-r ${bgGradient} ${colorClass}`}
+        className={`text-sm font-semibold px-3 py-1 rounded-full bg-linear-to-r ${bgGradient} ${colorClass}`}
       >
         {label}
       </span>
