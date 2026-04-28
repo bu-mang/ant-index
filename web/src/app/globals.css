@@ -82,7 +82,7 @@
   --gazua-foreground: oklch(1 0 0);
 
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0 0);
+  --border: oklch(0.94 0 0);
   --input: oklch(0.91 0 0);
   --ring: oklch(0.75 0.18 55);
 
@@ -136,7 +136,7 @@
   --gazua-foreground: oklch(1 0 0);
 
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
+  --border: oklch(1 0 0 / 7%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.78 0.16 55);
 

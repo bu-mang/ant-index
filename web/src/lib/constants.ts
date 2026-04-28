@@ -1,11 +1,11 @@
 // 지표 레이블 — 프론트/서버 공통 SSOT
 
 export const SB_LABELS = [
-  { max: 20, label: "극도의 평온" },
+  { max: 20, label: "매우 평온" },
   { max: 40, label: "평온" },
   { max: 60, label: "보통" },
   { max: 80, label: "불안" },
-  { max: 100, label: "극도의 공포" },
+  { max: 100, label: "매우 공포" },
 ] as const;
 
 export const GAZUA_LABELS = [
@@ -13,7 +13,7 @@ export const GAZUA_LABELS = [
   { max: 40, label: "조용" },
   { max: 60, label: "보통" },
   { max: 80, label: "흥분" },
-  { max: 100, label: "극도의 환희" },
+  { max: 100, label: "매우 환희" },
 ] as const;
 
 export type IndexLabel =
@@ -45,13 +45,13 @@ function toTier(value: number): number {
   return Math.min(Math.floor(value / 20), 4);
 }
 
-//               GAZUA →  침체      조용      보통      흥분      극도의환희
+//               GAZUA →  침체      조용      보통      흥분      매우환희
 const MOOD_MAP: AntMood[][] = [
-  /* 극도의평온 */ ["sleepy", "sleepy", "neutral", "excited", "excited"],
+  /* 매우평온 */ ["sleepy", "sleepy", "neutral", "excited", "excited"],
   /* 평온      */ ["sleepy", "neutral", "neutral", "excited", "excited"],
   /* 보통      */ ["neutral", "neutral", "neutral", "neutral", "chaos"],
   /* 불안      */ ["anxious", "anxious", "anxious", "chaos", "chaos"],
-  /* 극도의공포 */ ["anxious", "anxious", "anxious", "chaos", "chaos"],
+  /* 매우공포 */ ["anxious", "anxious", "anxious", "chaos", "chaos"],
 ];
 
 export function getAntMood(sb: number, gazua: number): AntMood {
