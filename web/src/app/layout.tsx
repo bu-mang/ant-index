@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import Link from 'next/link';
 import './globals.css';
 import { Providers } from './providers';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -28,7 +29,8 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Providers>
@@ -42,6 +44,7 @@ export default function RootLayout({
                 <Link href="/" className="hover:text-foreground transition">
                   대시보드
                 </Link>
+                <ThemeToggle />
               </div>
             </nav>
           </header>

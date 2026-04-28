@@ -38,7 +38,7 @@ export function GaugeChart({
             stroke="currentColor"
             strokeWidth="12"
             strokeLinecap="round"
-            className="text-muted/30"
+            className="text-muted-foreground/20"
           />
           {/* 값 호 */}
           <path
