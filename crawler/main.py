@@ -2,15 +2,19 @@
 
 사용법:
   python main.py              # 크롤링 1회 + 분석 1회
-  python main.py crawl        # 크롤링만 1회
+  python main.py crawl        # 크롤링만 1회 (글만, 시세 제외)
+  python main.py price        # 시세만 빠르게 1회
   python main.py analyze      # 분석만 1회
   python main.py clean        # 1년 지난 글 삭제 1회
-  python main.py loop         # 크롤링 + 분석 30분 주기 반복
-  python main.py loop-crawl   # 크롤링만 30분 주기 반복 (24시간마다 자동 clean)
+  python main.py loop             # 크롤링+분석(30분) + 시세(5분) 동시 반복
+  python main.py loop-crawl-price # 글 크롤링(30분) + 시세(5분) 동시 반복
+  python main.py loop-crawl       # 크롤링만 30분 주기 반복 (24시간마다 자동 clean)
   python main.py loop-analyze # 분석만 30분 주기 반복 (분석 후 한줄평 자동 생성)
+  python main.py loop-price   # 시세만 5분 주기 반복
 """
 import time
 import random
+import threading
 from datetime import datetime
 from crawler.db import get_active_stocks, insert_post, insert_price, get_unanalyzed_posts, update_sentiment, delete_old_posts, update_summary, insert_market_summary
 from crawler.sources.naver import crawl_board, crawl_post_detail, crawl_price
@@ -21,6 +25,26 @@ LOOP_INTERVAL = 30 * 60  # 30분 (초)
 
 
 _last_clean = 0  # 마지막 clean 실행 시각
+
+
+def price_all():
+    """전 종목 시세만 빠르게 크롤링 → stock_prices 테이블에 저장"""
+    stocks = get_active_stocks()
+    print(f"\n=== 시세 크롤링 ({len(stocks)}개 종목) [{datetime.now().strftime('%H:%M:%S')}] ===\n")
+
+    success = 0
+    for stock in stocks:
+        try:
+            price = crawl_price(stock.code)
+            if price:
+                insert_price(stock.id, price["current_price"], price["change_rate"])
+                print(f"  [{stock.name}] {price['current_price']:,}원 ({price['change_rate']:+.2f}%)")
+                success += 1
+        except Exception as e:
+            print(f"  [{stock.name}] 실패: {e}")
+        time.sleep(random.uniform(0.3, 0.8))
+
+    print(f"\n시세 크롤링 완료! {success}/{len(stocks)}개 종목\n")
 
 
 def crawl_all():
@@ -38,15 +62,6 @@ def crawl_all():
         stock_id = stock.id
         stock_code = stock.code
         stock_name = stock.name
-
-        # 시세 크롤링
-        try:
-            price = crawl_price(stock_code)
-            if price:
-                insert_price(stock_id, price["current_price"], price["change_rate"])
-                print(f"[{stock_name}] 시세: {price['current_price']:,}원 ({price['change_rate']:+.2f}%)")
-        except Exception as e:
-            print(f"[{stock_name}] 시세 크롤링 실패: {e}")
 
         # 종토방 크롤링
         print(f"[{stock_name}] 종토방 크롤링 중...")
@@ -181,16 +196,28 @@ if __name__ == "__main__":
         analyze_all()
     elif command == "crawl":
         crawl_all()
+    elif command == "price":
+        price_all()
     elif command == "analyze":
         analyze_all()
     elif command == "clean":
         clean()
     elif command == "loop":
+        # 시세(5분)를 서브 쓰레드, 크롤링+분석(30분)을 메인 쓰레드에서 동시 실행
+        t = threading.Thread(target=run_loop, args=(price_all,), kwargs={"interval": 5 * 60}, daemon=True)
+        t.start()
         run_loop(lambda: (crawl_all(), analyze_all()))
+    elif command == "loop-crawl-price":
+        # 시세(5분)를 서브 쓰레드, 글 크롤링(30분)을 메인 쓰레드에서 동시 실행
+        t = threading.Thread(target=run_loop, args=(price_all,), kwargs={"interval": 5 * 60}, daemon=True)
+        t.start()
+        run_loop(crawl_all)
     elif command == "loop-crawl":
         run_loop(crawl_all)
     elif command == "loop-analyze":
         run_loop(analyze_all)
+    elif command == "loop-price":
+        run_loop(price_all, interval=5 * 60)
     else:
         print(f"알 수 없는 명령: {command}")
-        print("사용법: python main.py [once|crawl|analyze|clean|loop|loop-crawl|loop-analyze]")
+        print("사용법: python main.py [once|crawl|price|analyze|clean|loop|loop-crawl|loop-analyze|loop-price]")

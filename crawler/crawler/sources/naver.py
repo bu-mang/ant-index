@@ -75,40 +75,47 @@ def crawl_board(stock_code, pages=5):
     return all_posts
 
 
-def crawl_price(stock_code):
-    """네이버증권에서 현재가, 등락률 크롤링"""
-    url = f"{BASE_URL}/item/main.naver?code={stock_code}"
-    response = requests.get(url, headers=get_headers())
-    response.raise_for_status()
+def crawl_price(stock_code, retries=1):
+    """네이버증권에서 현재가, 등락률 크롤링 (실패 시 1회 재시도)"""
+    for attempt in range(1 + retries):
+        try:
+            url = f"{BASE_URL}/item/main.naver?code={stock_code}"
+            response = requests.get(url, headers=get_headers(), timeout=10)
+            response.raise_for_status()
 
-    soup = BeautifulSoup(response.text, "html.parser")
+            soup = BeautifulSoup(response.text, "html.parser")
 
-    # 현재가
-    no_today = soup.select_one("p.no_today .blind")
-    if not no_today:
-        return None
+            # 현재가
+            no_today = soup.select_one("p.no_today .blind")
+            if not no_today:
+                return None
 
-    current_price = int(no_today.get_text(strip=True).replace(",", ""))
+            current_price = int(no_today.get_text(strip=True).replace(",", ""))
 
-    # 등락률 (첫 번째 no_exday)
-    exday = soup.select_one("p.no_exday")
-    change_rate = 0.0
-    if exday:
-        ems = exday.select("em")
-        # 두 번째 em이 등락률 (%)
-        if len(ems) >= 2:
-            rate_blind = ems[1].select_one(".blind")
-            if rate_blind:
-                rate = float(rate_blind.get_text(strip=True))
-                # no_down이면 음수
-                if "no_down" in ems[1].get("class", []):
-                    rate = -rate
-                change_rate = rate
+            # 등락률 (첫 번째 no_exday)
+            exday = soup.select_one("p.no_exday")
+            change_rate = 0.0
+            if exday:
+                ems = exday.select("em")
+                # 두 번째 em이 등락률 (%)
+                if len(ems) >= 2:
+                    rate_blind = ems[1].select_one(".blind")
+                    if rate_blind:
+                        rate = float(rate_blind.get_text(strip=True))
+                        # no_down이면 음수
+                        if "no_down" in ems[1].get("class", []):
+                            rate = -rate
+                        change_rate = rate
 
-    return {
-        "current_price": current_price,
-        "change_rate": change_rate,
-    }
+            return {
+                "current_price": current_price,
+                "change_rate": change_rate,
+            }
+        except Exception:
+            if attempt < retries:
+                time.sleep(random.uniform(1, 2))
+            else:
+                raise
 
 
 def crawl_kospi():

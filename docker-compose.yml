@@ -13,7 +13,7 @@ services:
     build: ./crawler
     container_name: antindex-crawler
     restart: unless-stopped
-    command: ["python", "main.py", "loop-crawl"]
+    command: ["python", "main.py", "loop-crawl-price"]
     environment:
       - DATABASE_URL=postgresql://antindex:antindex2026@db:5432/antindex
     depends_on:
