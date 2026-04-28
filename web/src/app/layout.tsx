@@ -1,9 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import Link from 'next/link';
 import './globals.css';
 import { Providers } from './providers';
-import { ThemeToggle } from '@/components/theme-toggle';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -32,27 +30,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body className="min-h-full bg-background text-foreground">
         <Providers>
-          {/* 헤더 */}
-          <header className="border-b border-border">
-            <nav className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-              <Link href="/" className="text-lg font-bold tracking-tight">
-                개미지표
-              </Link>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <Link href="/" className="hover:text-foreground transition">
-                  대시보드
-                </Link>
-                <ThemeToggle />
-              </div>
-            </nav>
-          </header>
-
-          {/* 메인 콘텐츠 */}
-          <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
-            {children}
-          </main>
+          {children}
         </Providers>
       </body>
     </html>

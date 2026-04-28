@@ -86,4 +86,5 @@ Phase 1 (MVP) 진행 중. 상세 내역은 docs/IMPLEMENT.md 참조.
 - 커밋 메시지: 한국어 OK
 - 서버: TypeScript strict, NestJS 모듈 구조
 - 크롤러: Python 3.x, SQLAlchemy Core (ORM 레이어 미사용)
+- **프론트엔드**: `.claude/agents/frontend.md` 참조 (컬러 시스템, 컴포넌트 패턴, 레이아웃 등)
 - 스키마 변경은 반드시 `server/src/database/schema.ts`에서 먼저 수정 → `drizzle-kit generate`로 마이그레이션 생성
