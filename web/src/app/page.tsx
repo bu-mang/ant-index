@@ -72,22 +72,17 @@ export default function DashboardPage() {
   return (
     <>
       {/* 헤더 — fixed, 사이드바 영역 제외 */}
-      <header className="fixed top-0 left-0 lg:right-120 right-0 h-14 border-b border-border bg-background z-10">
-        <nav className="max-w-432 mx-auto px-4 h-full flex items-center justify-between">
+      <header className="fixed top-0 left-0 lg:right-132 right-0 h-14 bg-background z-10">
+        <nav className="max-w-432 mx-auto px-12 h-full flex items-center justify-between">
           <Link href="/" className="text-lg font-bold tracking-tight">
             개미지표
           </Link>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <Link href="/" className="hover:text-foreground transition">
-              대시보드
-            </Link>
-            <ThemeToggle />
-          </div>
+          <ThemeToggle />
         </nav>
       </header>
 
       {/* 본문 — 헤더 아래, 사이드바 왼쪽 */}
-      <main className="pt-14 lg:mr-120">
+      <main className="pt-14 lg:mr-132">
         <div className="max-w-432 mx-auto px-12 py-6 space-y-6">
           {/* 메인 배너 — 한줄평 + 게이지 + 개미 이미지 */}
           <section className="py-8 flex gap-8">
@@ -143,11 +138,37 @@ export default function DashboardPage() {
       </main>
 
       {/* 우측 사이드바: 종목별 지표 — fixed, 전체 높이 */}
-      <aside className="hidden lg:flex flex-col w-120 fixed right-0 top-0 bottom-0 border-l border-border bg-background overflow-y-auto">
-        <div className="px-4 py-4 border-b border-border">
-          <h2 className="text-base font-semibold">종목별 지표</h2>
+      <aside className="hidden lg:flex flex-col w-132 fixed right-0 top-0 bottom-0 border-l border-border bg-white dark:bg-zinc-900">
+        <div className="shrink-0 border-b border-border">
+          <div className="h-10 flex pt-4 px-3">
+            <h2 className="text-base font-bold">종목별 지표</h2>
+          </div>
+          <table className="w-full table-fixed text-sm h-10">
+            <colgroup>
+              <col className="w-[40%]" />
+              <col className="w-[20%]" />
+              <col className="w-[20%]" />
+              <col className="w-[20%]" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th className="h-7 px-2 text-left text-xs font-medium text-muted-foreground">
+                  <span className="translate-x-1 inline-block">종목</span>
+                </th>
+                <th className="h-7 px-2 text-right text-xs font-medium text-muted-foreground">
+                  <span>시세</span>
+                </th>
+                <th className="h-7 px-2 text-right text-xs font-medium text-muted-foreground">
+                  <span>ㅅㅂ</span>
+                </th>
+                <th className="h-7 px-2 text-right pr-4 text-xs font-medium text-muted-foreground">
+                  <span>가즈아</span>
+                </th>
+              </tr>
+            </thead>
+          </table>
         </div>
-        <div className="px-4 py-4 overflow-y-auto">
+        <div className="overflow-y-auto flex-1 overscroll-contain">
           <StockTable stocks={stocks ?? []} />
         </div>
       </aside>
