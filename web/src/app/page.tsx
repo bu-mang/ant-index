@@ -89,15 +89,15 @@ export default function DashboardPage() {
             {/* 좌측: 한줄평 + 게이지 */}
             <div className="flex-1 min-w-0 space-y-12 ">
               {marketSummary?.summary && (
-                <div className="flex flex-col gap-3">
+                <div className="flex  flex-col items-center gap-3">
                   <Badge variant="default">증시요약</Badge>
-                  <p className="text-4xl font-extrabold max-w-150 leading-snug break-keep">
+                  <p className="text-4xl text-center font-extrabold max-w-150 leading-snug break-keep">
                     {marketSummary.summary}
                   </p>
                 </div>
               )}
 
-              <div className="flex gap-12 max-w-150">
+              <div className="flex px-20 gap-12 items-center justify-center w-full">
                 <GaugeChart
                   value={avgSb.value}
                   label={avgSb.label}

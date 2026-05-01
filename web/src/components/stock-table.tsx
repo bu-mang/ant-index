@@ -68,15 +68,7 @@ export function StockTable({ stocks }: StockTableProps) {
                   </div>
                 </Link>
               </TableCell>
-              <TableCell
-                className={`text-right ${
-                  (stock.changeRate ?? 0) > 0
-                    ? "text-red-500"
-                    : (stock.changeRate ?? 0) < 0
-                      ? "text-blue-500"
-                      : "text-muted-foreground"
-                }`}
-              >
+              <TableCell className="text-right">
                 <div className="flex flex-col">
                   <span className="font-semibold">
                     {stock.currentPrice != null
@@ -84,7 +76,13 @@ export function StockTable({ stocks }: StockTableProps) {
                       : "-"}
                   </span>
                   {stock.changeRate != null && (
-                    <span className="text-xs opacity-50">
+                    <span className={`text-xs ${
+                      stock.changeRate > 0
+                        ? "text-red-500"
+                        : stock.changeRate < 0
+                          ? "text-blue-500"
+                          : "text-muted-foreground"
+                    }`}>
                       {stock.changeRate > 0 ? "+" : ""}
                       {stock.changeRate.toFixed(2)}%
                     </span>
