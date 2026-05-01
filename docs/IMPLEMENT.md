@@ -107,6 +107,7 @@ ant-index/
 | 코스피 지수 크롤러 | ✅ 완료 |
 | 감성분석 파이프라인 | ✅ 완료 |
 | 지표 계산 (SB/GAZUA) | ✅ 완료 (실시간 집계) |
+| 통합 개미지표 (ant-index) | ✅ 완료 (gazua/(sb+gazua)*100) |
 | 한줄평 (종목별 + 시장) | ✅ 완료 |
 | 스냅샷 저장 | ✅ 완료 |
 | REST API | ✅ 완료 |
@@ -116,11 +117,30 @@ ant-index/
 | 토스증권 크롤러 | ❌ 미착수 |
 | 30일 min/max 정규화 | ❌ 미착수 (데이터 축적 필요) |
 | 미국주식 (나스닥) | ❌ 미착수 |
+| 통합 개미지표 UI 전환 | ✅ 완료 |
 | UI 고도화 | 🔄 진행 중 |
+
+### 2026-05-02 — 통합 개미지표 전환
+
+- 돔황챠(공포) + 가즈아(탐욕) 두 독립 지수를 CNN Fear & Greed Index 스타일로 통합
+- 계산식: `antIndex = gazua / (sb + gazua) * 100` (0=극돔황챠, 50=중립, 100=극가즈아)
+- 5단계 레이블: 극돔황챠 / 돔황챠 / 중립 / 가즈아 / 극가즈아
+- 컬러: 파랑(공포, #217cf9) → 오렌지(탐욕, #ff6600) SVG 그라데이션
+- **백엔드**: index.service.ts에 getAntIndex(), getAntIndexHistory() 추가
+- **백엔드**: stocks.service.ts의 getActiveStocks() 응답에 antIndex 필드 추가
+- **백엔드**: index.controller.ts에 `/api/stocks/:code/ant-index`, `/ant-index/history` 엔드포인트 추가
+- **프론트**: api.ts에 antIndex 타입/함수, queries.ts에 useAntIndex/useAntIndexHistory 훅 추가
+- **프론트**: constants.ts에 ANT_INDEX_LABELS 5단계 추가
+- **프론트**: gauge-chart.tsx에 color="gradient" 모드 (SVG linearGradient + color-mix 텍스트)
+- **프론트**: time-series-chart.tsx에 단일 라인 모드 (ReferenceLine y=50)
+- **프론트**: page.tsx → avgAntIndex 단일 게이지, main-content.tsx → 개요/추이 탭
+- **프론트**: sidebar.tsx 4열→3열 (종목/시세/개미지표), stock-table.tsx 통합 색상
+- **프론트**: stocks/[code]/page.tsx 듀얼 게이지→단일 gradient 게이지
+- 기존 sb/gazua API는 레거시로 유지 (하위호환)
 
 ## 미완료 / 향후 작업
 
-- 종목 테이블에 3일치 ㅅㅂ지수 뱃지 표시 (스냅샷 데이터 축적 후)
+- 종목 테이블에 3일치 개미지표 뱃지 표시 (스냅샷 데이터 축적 후)
 - 30일 min/max 정규화 (데이터 30일 축적 후 적용)
 - 감성분석 프롬프트에 실제 주가 반영 (현재 price=0으로 대체 중)
 - 토스증권 크롤러 (Playwright)
