@@ -15,9 +15,8 @@ export function Sidebar({ stocks }: SidebarProps) {
           <h2
             className="text-base font-bold"
             style={{
-              fontFamily: '"SeoulNotice", sans-serif',
-              fontWeight: 900,
-            }}
+              fontFamily: '"Mbc1961", sans-serif',
+                          }}
           >
             종목별 지수
           </h2>

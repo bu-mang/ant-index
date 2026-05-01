@@ -33,9 +33,8 @@ export function MainContent({
               <p
                 className="text-4xl text-center font-extrabold max-w-150 leading-snug break-keep"
                 style={{
-                  fontFamily: '"SeoulNotice", sans-serif',
-                  fontWeight: 900,
-                }}
+                  fontFamily: '"Mbc1961", sans-serif',
+                                  }}
               >
                 {marketSummary}
               </p>

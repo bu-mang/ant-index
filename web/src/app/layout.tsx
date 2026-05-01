@@ -40,6 +40,12 @@ export default function RootLayout({
             font-weight: 900;
             font-display: swap;
           }
+          @font-face {
+            font-family: "Mbc1961";
+            src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-01@1.0/MBC1961M.woff2") format("woff2");
+            font-weight: normal;
+            font-display: swap;
+          }
         `,
           }}
         />

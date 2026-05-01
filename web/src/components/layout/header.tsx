@@ -10,7 +10,7 @@ export function Header() {
         <Link
           href="/"
           className="text-xl font-bold tracking-tight"
-          style={{ fontFamily: '"SeoulNotice", sans-serif', fontWeight: 900 }}
+          style={{ fontFamily: '"Mbc1961", sans-serif' }}
         >
           개미지표
         </Link>
