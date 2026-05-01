@@ -35,9 +35,9 @@ function StockLogo({ code, name }: { code: string; name: string }) {
 
 function getIndexColor(value: number | null) {
   if (value === null) return "text-muted-foreground";
-  if (value >= 60) return "text-red-500 font-bold";
-  if (value >= 40) return "text-yellow-500";
-  return "text-green-500";
+  if (value >= 60) return "text-sb font-bold";
+  if (value >= 40) return "text-[#d4ab28]";  /* yellow-500 */
+  return "text-gazua";
 }
 
 export function StockTable({ stocks }: StockTableProps) {
@@ -78,9 +78,9 @@ export function StockTable({ stocks }: StockTableProps) {
                   {stock.changeRate != null && (
                     <span className={`text-xs ${
                       stock.changeRate > 0
-                        ? "text-red-500"
+                        ? "text-[#fa342c]"
                         : stock.changeRate < 0
-                          ? "text-blue-500"
+                          ? "text-[#217cf9]"
                           : "text-muted-foreground"
                     }`}>
                       {stock.changeRate > 0 ? "+" : ""}

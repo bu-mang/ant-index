@@ -63,9 +63,9 @@ export default function StockDetailPage() {
             <span
               className={`ml-2 text-sm ${
                 (stock.changeRate ?? 0) > 0
-                  ? "text-red-500"
+                  ? "text-[#fa342c]"
                   : (stock.changeRate ?? 0) < 0
-                    ? "text-blue-500"
+                    ? "text-[#217cf9]"
                     : "text-muted-foreground"
               }`}
             >

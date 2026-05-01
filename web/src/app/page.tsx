@@ -84,12 +84,12 @@ export default function DashboardPage() {
       {/* 본문 — 헤더 아래, 사이드바 왼쪽 */}
       <main className="pt-14 lg:mr-132">
         <div className="max-w-432 mx-auto px-12 py-6 space-y-6">
-          {/* 메인 배너 — 한줄평 + 게이지 + 개미 이미지 */}
-          <section className="py-8 flex gap-8">
-            {/* 좌측: 한줄평 + 게이지 */}
-            <div className="flex-1 min-w-0 space-y-12 ">
+          {/* 메인 배너 — 한줄평 + 게이지 (중앙) + 개미 이미지 (우하단 고정) */}
+          <section className="relative py-8">
+            {/* 한줄평 + 게이지 — 중앙 정렬 */}
+            <div className="flex flex-col items-center space-y-12">
               {marketSummary?.summary && (
-                <div className="flex  flex-col items-center gap-3">
+                <div className="flex flex-col items-center gap-3">
                   <Badge variant="default">증시요약</Badge>
                   <p className="text-4xl text-center font-extrabold max-w-150 leading-snug break-keep">
                     {marketSummary.summary}
@@ -97,7 +97,7 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              <div className="flex px-20 gap-12 items-center justify-center w-full">
+              <div className="flex gap-12 items-center justify-center">
                 <GaugeChart
                   value={avgSb.value}
                   label={avgSb.label}
@@ -115,8 +115,8 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* 우측: 개미 이미지 */}
-            <div className="hidden md:flex items-center justify-center w-80 shrink-0">
+            {/* 개미 이미지 — 우측 하단 고정 */}
+            <div className="hidden md:block absolute right-0 bottom-0">
               <AntHero sb={avgSb.value} gazua={avgGazua.value} />
             </div>
           </section>
@@ -138,7 +138,7 @@ export default function DashboardPage() {
       </main>
 
       {/* 우측 사이드바: 종목별 지표 — fixed, 전체 높이 */}
-      <aside className="hidden lg:flex flex-col w-132 fixed right-0 top-0 bottom-0 border-l border-border bg-white dark:bg-zinc-900">
+      <aside className="hidden lg:flex flex-col w-132 fixed right-0 top-0 bottom-0 border-l border-border bg-background">
         <div className="shrink-0 border-b border-border">
           <div className="h-10 flex pt-4 px-3">
             <h2 className="text-base font-bold">종목별 지표</h2>

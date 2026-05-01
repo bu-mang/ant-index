@@ -18,11 +18,11 @@ export function GaugeChart({
 }: GaugeChartProps) {
   // 게이지 각도 계산 (0~180도)
   const angle = (value / 100) * 180;
-  const colorClass = color === "red" ? "text-red-500" : "text-green-500";
+  const colorClass = color === "red" ? "text-sb" : "text-gazua";
   const bgGradient =
     color === "red"
-      ? "from-red-500/20 to-red-500/5"
-      : "from-green-500/20 to-green-500/5";
+      ? "from-sb/20 to-sb/5"
+      : "from-gazua/20 to-gazua/5";
 
   return (
     <div className="flex flex-col items-center gap-2 flex-1">
