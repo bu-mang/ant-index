@@ -50,6 +50,7 @@
   --color-sb-foreground: var(--sb-foreground);
   --color-gazua: var(--gazua);
   --color-gazua-foreground: var(--gazua-foreground);
+  --color-hover-muted: var(--hover-muted);
 }
 
 :root {
@@ -104,6 +105,7 @@
   --sidebar-accent-foreground: #2a3038; /* gray-900 */
   --sidebar-border: #eeeff1;     /* gray-300 */
   --sidebar-ring: #ff6600;       /* carrot-600 */
+  --hover-muted: #dcdee3;        /* gray-400 */
 }
 
 .dark {
@@ -156,6 +158,7 @@
   --sidebar-accent-foreground: #f3f4f5;
   --sidebar-border: #555d6d33;   /* gray-800 / 20% */
   --sidebar-ring: #ff9364;       /* carrot-500 */
+  --hover-muted: #555d6d44;      /* gray-800 / 27% */
 }
 
 @layer base {

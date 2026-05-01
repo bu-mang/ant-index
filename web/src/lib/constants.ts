@@ -1,11 +1,11 @@
 // 지표 레이블 — 프론트/서버 공통 SSOT
 
 export const SB_LABELS = [
-  { max: 20, label: "매우 평온" },
+  { max: 20, label: "매우평온" },
   { max: 40, label: "평온" },
   { max: 60, label: "보통" },
   { max: 80, label: "불안" },
-  { max: 100, label: "매우 공포" },
+  { max: 100, label: "매우공포" },
 ] as const;
 
 export const GAZUA_LABELS = [
@@ -13,7 +13,7 @@ export const GAZUA_LABELS = [
   { max: 40, label: "조용" },
   { max: 60, label: "보통" },
   { max: 80, label: "흥분" },
-  { max: 100, label: "매우 환희" },
+  { max: 100, label: "매우환희" },
 ] as const;
 
 export type IndexLabel =

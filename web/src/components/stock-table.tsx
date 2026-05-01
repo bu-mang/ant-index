@@ -16,9 +16,7 @@ function StockLogo({ code, name }: { code: string; name: string }) {
   const [error, setError] = useState(false);
 
   if (error) {
-    return (
-      <div className="w-8 h-8 rounded-full bg-muted shrink-0" />
-    );
+    return <div className="w-8 h-8 rounded-full bg-muted shrink-0" />;
   }
 
   return (
@@ -36,7 +34,7 @@ function StockLogo({ code, name }: { code: string; name: string }) {
 function getIndexColor(value: number | null) {
   if (value === null) return "text-muted-foreground";
   if (value >= 60) return "text-sb font-bold";
-  if (value >= 40) return "text-[#d4ab28]";  /* yellow-500 */
+  if (value >= 40) return "text-[#d4ab28]"; /* yellow-500 */
   return "text-gazua";
 }
 
@@ -54,10 +52,13 @@ export function StockTable({ stocks }: StockTableProps) {
           {stocks.map((stock) => (
             <TableRow
               key={stock.id}
-              className="cursor-pointer hover:bg-muted/50"
+              className="cursor-pointer hover:bg-hover-muted"
             >
-              <TableCell className="pl-3">
-                <Link href={`/stocks/${stock.code}`} className="flex items-center gap-2">
+              <TableCell className="pl-5">
+                <Link
+                  href={`/stocks/${stock.code}`}
+                  className="flex items-center gap-2"
+                >
                   <StockLogo code={stock.code} name={stock.name} />
                   <div className="flex flex-col min-w-0">
                     <span className="font-bold truncate">{stock.name}</span>
@@ -76,13 +77,15 @@ export function StockTable({ stocks }: StockTableProps) {
                       : "-"}
                   </span>
                   {stock.changeRate != null && (
-                    <span className={`text-xs ${
-                      stock.changeRate > 0
-                        ? "text-[#fa342c]"
-                        : stock.changeRate < 0
-                          ? "text-[#217cf9]"
-                          : "text-muted-foreground"
-                    }`}>
+                    <span
+                      className={`text-xs ${
+                        stock.changeRate > 0
+                          ? "text-[#fa342c]"
+                          : stock.changeRate < 0
+                            ? "text-[#217cf9]"
+                            : "text-muted-foreground"
+                      }`}
+                    >
                       {stock.changeRate > 0 ? "+" : ""}
                       {stock.changeRate.toFixed(2)}%
                     </span>
@@ -90,7 +93,7 @@ export function StockTable({ stocks }: StockTableProps) {
                 </div>
               </TableCell>
               <TableCell
-                className={`text-right ${getIndexColor(stock.sbIndex)}`}
+                className={`text-right pr-5 ${getIndexColor(stock.sbIndex)}`}
               >
                 <div className="flex flex-col">
                   <span className="font-semibold">
@@ -106,7 +109,7 @@ export function StockTable({ stocks }: StockTableProps) {
                 </div>
               </TableCell>
               <TableCell
-                className={`text-right pr-6 ${getIndexColor(stock.gazuaIndex)}`}
+                className={`text-right pr-10 ${getIndexColor(stock.gazuaIndex)}`}
               >
                 <div className="flex flex-col">
                   <span className="font-semibold">
