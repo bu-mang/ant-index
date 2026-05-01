@@ -38,6 +38,15 @@ const GAZUA_LABELS = [
   { max: 100, label: '극도의 환희' },
 ];
 
+// 통합 개미지표 레이블 (0=극돔황챠, 100=극가즈아)
+const ANT_INDEX_LABELS = [
+  { max: 20, label: '극돔황챠' },
+  { max: 40, label: '돔황챠' },
+  { max: 60, label: '중립' },
+  { max: 80, label: '가즈아' },
+  { max: 100, label: '극가즈아' },
+];
+
 // 지표값 → 한글 레이블 변환
 function getLabel(value: number, labels: typeof SB_LABELS): string {
   for (const { max, label } of labels) {
@@ -54,63 +63,6 @@ export class IndexService {
   ) {}
 
   /**
-   * posts 테이블에서 실시간으로 ㅅㅂ지수 / 가즈아지수를 계산한다.
-   * - 최근 N시간(기본 24시간) 내 감성분석 완료된 글만 대상
-   * - 좋아요 가중치: 1 + log10(like_count + 1)
-   * - PostgreSQL의 log() = log10 (자연로그는 ln())
-   *
-   * 반환 예시: { sb: 37.4, gazua: 17.57, totalPosts: 49 }
-   */
-  async calculateLiveIndex(stockId: number, hours = 24) {
-    const since = new Date(Date.now() - hours * 60 * 60 * 1000);
-
-    /**
-    /* SELECT
-    /* sum(1 + log(greatest(like_count, 0) + 1))  AS "totalWeight",
-    /* sum(CASE WHEN sentiment_label = 'BULL' ... END)  AS "bullWeight",
-    /* sum(CASE WHEN sentiment_label = 'BEAR' ... END)  AS "bearWeight",
-    /* count(*)::text  AS "totalPosts"
-    /* FROM posts
-    /* WHERE ...
-    */
-    const result = await this.db
-      .select({
-        // 전체 글의 가중치 합
-        totalWeight: sql<string>`sum(1 + log(greatest(${schema.posts.likeCount}, 0) + 1))`,
-        // BULL(상승론자) 글의 가중치 합
-        bullWeight: sql<string>`sum(case when ${schema.posts.sentimentLabel} = 'BULL' then 1 + log(greatest(${schema.posts.likeCount}, 0) + 1) else 0 end)`,
-        // BEAR(하락론자) 글의 가중치 합
-        bearWeight: sql<string>`sum(case when ${schema.posts.sentimentLabel} = 'BEAR' then 1 + log(greatest(${schema.posts.likeCount}, 0) + 1) else 0 end)`,
-        totalPosts: sql<string>`count(*)::text`,
-      })
-      .from(schema.posts)
-      .where(
-        and(
-          eq(schema.posts.stockId, stockId),
-          gte(schema.posts.crawledAt, since),
-          sql`${schema.posts.sentimentLabel} is not null`, // 감성분석 완료된 글만
-        ),
-      );
-
-    const row = result[0];
-    const totalWeight = Number(row?.totalWeight) || 0;
-    const bullWeight = Number(row?.bullWeight) || 0;
-    const bearWeight = Number(row?.bearWeight) || 0;
-    const totalPosts = Number(row?.totalPosts) || 0;
-
-    // 글이 없으면 0 반환
-    if (totalWeight === 0) {
-      return { sb: 0, gazua: 0, totalPosts: 0 };
-    }
-
-    // 소수점 2자리까지 반올림
-    const sb = Math.round((bearWeight / totalWeight) * 100 * 100) / 100;
-    const gazua = Math.round((bullWeight / totalWeight) * 100 * 100) / 100;
-
-    return { sb, gazua, totalPosts };
-  }
-
-  /**
    * ㅅㅂ지수 현재값 조회 — 최근 24시간 posts 기준 실시간 계산
    *
    * 반환 예시: { code: "005930", name: "삼성전자", indexType: "SB",
@@ -120,7 +72,7 @@ export class IndexService {
     const stock = await this.stocksService.findByCode(code);
     if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
 
-    const live = await this.calculateLiveIndex(stock.id);
+    const live = await this.stocksService.calculateLiveIndex(stock.id);
 
     return {
       code: stock.code,
@@ -143,7 +95,7 @@ export class IndexService {
     const stock = await this.stocksService.findByCode(code);
     if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
 
-    const live = await this.calculateLiveIndex(stock.id);
+    const live = await this.stocksService.calculateLiveIndex(stock.id);
 
     return {
       code: stock.code,
@@ -275,6 +227,79 @@ export class IndexService {
         const total = Number(d.totalWeight) || 1;
         const target = Number(d.targetWeight) || 0;
         const value = Math.round((target / total) * 100 * 100) / 100;
+        return {
+          date: d.date,
+          value,
+          totalPosts: Number(d.totalPosts),
+        };
+      }),
+    };
+  }
+
+  /**
+   * 통합 개미지표 현재값 — bullWeight / (bullWeight + bearWeight) * 100
+   * 0 = 극돔황챠(극도의 공포), 100 = 극가즈아(극도의 탐욕)
+   */
+  async getAntIndex(code: string) {
+    const stock = await this.stocksService.findByCode(code);
+    if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
+
+    const live = await this.stocksService.calculateLiveIndex(stock.id);
+
+    return {
+      code: stock.code,
+      name: stock.name,
+      indexType: 'FEAR_GREED',
+      value: live.antIndex,
+      label: getLabel(live.antIndex, ANT_INDEX_LABELS),
+      totalPosts: live.totalPosts,
+      calculatedAt: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * 통합 개미지표 히스토리 — 일별 bull/(bull+bear)*100
+   */
+  async getAntIndexHistory(code: string, period = '7d') {
+    const stock = await this.stocksService.findByCode(code);
+    if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
+
+    const days = PERIOD_DAYS[period] ?? 7;
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const daily = await this.db
+      .select({
+        date: sql<string>`date_trunc('day', ${schema.posts.crawledAt} AT TIME ZONE 'Asia/Seoul')::date::text`,
+        bullWeight: sql<string>`sum(case when ${schema.posts.sentimentLabel} = 'BULL' then 1 + log(greatest(${schema.posts.likeCount}, 0) + 1) else 0 end)`,
+        bearWeight: sql<string>`sum(case when ${schema.posts.sentimentLabel} = 'BEAR' then 1 + log(greatest(${schema.posts.likeCount}, 0) + 1) else 0 end)`,
+        totalPosts: sql<string>`count(*)::text`,
+      })
+      .from(schema.posts)
+      .where(
+        and(
+          eq(schema.posts.stockId, stock.id),
+          gte(schema.posts.crawledAt, since),
+          sql`${schema.posts.sentimentLabel} is not null`,
+        ),
+      )
+      .groupBy(
+        sql`date_trunc('day', ${schema.posts.crawledAt} AT TIME ZONE 'Asia/Seoul')`,
+      )
+      .orderBy(
+        sql`date_trunc('day', ${schema.posts.crawledAt} AT TIME ZONE 'Asia/Seoul')`,
+      );
+
+    return {
+      code: stock.code,
+      name: stock.name,
+      indexType: 'FEAR_GREED',
+      period,
+      data: daily.map((d) => {
+        const bull = Number(d.bullWeight) || 0;
+        const bear = Number(d.bearWeight) || 0;
+        const sum = bull + bear;
+        const value =
+          sum === 0 ? 50 : Math.round((bull / sum) * 100 * 100) / 100;
         return {
           date: d.date,
           value,

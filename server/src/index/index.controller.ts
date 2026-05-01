@@ -34,6 +34,21 @@ export class IndexController {
     return this.indexService.getGazuaHistory(code, period);
   }
 
+  // GET /api/stocks/:code/ant-index — 통합 개미지표 현재값
+  @Get('ant-index')
+  getAntIndex(@Param('code') code: string) {
+    return this.indexService.getAntIndex(code);
+  }
+
+  // GET /api/stocks/:code/ant-index/history?period=7d|30d|90d — 통합 개미지표 히스토리
+  @Get('ant-index/history')
+  getAntIndexHistory(
+    @Param('code') code: string,
+    @Query('period') period?: string,
+  ) {
+    return this.indexService.getAntIndexHistory(code, period);
+  }
+
   // GET /api/stocks/:code/summary — 종목 한줄평 (analyzer가 DB에 저장한 것 조회)
   @Get('summary')
   getSummary(@Param('code') code: string) {

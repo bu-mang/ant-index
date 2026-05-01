@@ -50,6 +50,24 @@ export function useGazuaHistory(code: string, period = "7d") {
   });
 }
 
+export function useAntIndex(code: string) {
+  return useQuery({
+    queryKey: ["ant-index", code],
+    queryFn: () => api.getAntIndex(code),
+    staleTime: STALE_TIME,
+    enabled: !!code,
+  });
+}
+
+export function useAntIndexHistory(code: string, period = "7d") {
+  return useQuery({
+    queryKey: ["ant-index-history", code, period],
+    queryFn: () => api.getAntIndexHistory(code, period),
+    staleTime: STALE_TIME,
+    enabled: !!code,
+  });
+}
+
 export function useSummary(code: string) {
   return useQuery({
     queryKey: ["summary", code],

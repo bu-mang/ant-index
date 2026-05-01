@@ -16,13 +16,21 @@ export const GAZUA_LABELS = [
   { max: 100, label: "매우환희" },
 ] as const;
 
+export const ANT_INDEX_LABELS = [
+  { max: 20, label: "극돔황챠" },
+  { max: 40, label: "돔황챠" },
+  { max: 60, label: "중립" },
+  { max: 80, label: "가즈아" },
+  { max: 100, label: "극가즈아" },
+] as const;
+
 export type IndexLabel =
   | (typeof SB_LABELS)[number]["label"]
   | (typeof GAZUA_LABELS)[number]["label"];
 
 export function getLabel(
   value: number,
-  labels: typeof SB_LABELS | typeof GAZUA_LABELS,
+  labels: typeof SB_LABELS | typeof GAZUA_LABELS | typeof ANT_INDEX_LABELS,
 ): string {
   for (const { max, label } of labels) {
     if (value <= max) return label;

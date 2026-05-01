@@ -20,6 +20,7 @@ export interface Stock {
   isActive: boolean;
   sbIndex: number | null;
   gazuaIndex: number | null;
+  antIndex: number | null;
   totalPosts: number | null;
   currentPrice: number | null;
   changeRate: number | null;
@@ -28,7 +29,7 @@ export interface Stock {
 export interface IndexResult {
   code: string;
   name: string;
-  indexType: 'SB' | 'GAZUA';
+  indexType: 'SB' | 'GAZUA' | 'FEAR_GREED';
   value: number;
   label: string;
   totalPosts: number;
@@ -44,7 +45,7 @@ export interface HistoryDataPoint {
 export interface IndexHistory {
   code: string;
   name: string;
-  indexType: 'SB' | 'GAZUA';
+  indexType: 'SB' | 'GAZUA' | 'FEAR_GREED';
   period: string;
   data: HistoryDataPoint[];
 }
@@ -65,6 +66,10 @@ export const api = {
     fetchApi<IndexHistory>(`/stocks/${code}/sb/history?period=${period}`),
   getGazuaHistory: (code: string, period = '7d') =>
     fetchApi<IndexHistory>(`/stocks/${code}/gazua/history?period=${period}`),
+  getAntIndex: (code: string) =>
+    fetchApi<IndexResult>(`/stocks/${code}/ant-index`),
+  getAntIndexHistory: (code: string, period = '7d') =>
+    fetchApi<IndexHistory>(`/stocks/${code}/ant-index/history?period=${period}`),
   getSummary: (code: string) =>
     fetchApi<SummaryResult>(`/stocks/${code}/summary`),
   getMarketSummary: () =>

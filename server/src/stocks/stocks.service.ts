@@ -51,6 +51,7 @@ export class StocksService {
           ...stock,
           sbIndex: liveIndex.sb,
           gazuaIndex: liveIndex.gazua,
+          antIndex: liveIndex.antIndex,
           totalPosts: liveIndex.totalPosts,
           currentPrice: latestPrice?.currentPrice ?? null,
           changeRate: latestPrice?.changeRate
@@ -79,13 +80,13 @@ export class StocksService {
   }
 
   /**
-   * posts에서 최근 24시간 감성분석 결과를 실시간 집계하여 ㅅㅂ/가즈아 지수를 계산한다.
-   * IndexService.calculateLiveIndex와 동일한 로직.
+   * posts에서 최근 N시간(기본 24시간) 감성분석 결과를 실시간 집계.
+   * IndexService에서도 호출하는 공용 메서드.
    *
-   * 반환 예시: { sb: 37.4, gazua: 17.57, totalPosts: 49 }
+   * 반환: raw weight + 가공된 sb/gazua/antIndex
    */
-  private async calculateLiveIndex(stockId: number) {
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  async calculateLiveIndex(stockId: number, hours = 24) {
+    const since = new Date(Date.now() - hours * 60 * 60 * 1000);
 
     const result = await this.db
       .select({
@@ -110,12 +111,29 @@ export class StocksService {
     const totalPosts = Number(row?.totalPosts) || 0;
 
     if (totalWeight === 0) {
-      return { sb: 0, gazua: 0, totalPosts: 0 };
+      return {
+        bullWeight: 0,
+        bearWeight: 0,
+        totalWeight: 0,
+        sb: 0,
+        gazua: 0,
+        antIndex: 50,
+        totalPosts: 0,
+      };
     }
 
+    const bullBearSum = bullWeight + bearWeight;
+
     return {
+      bullWeight,
+      bearWeight,
+      totalWeight,
       sb: Math.round((bearWeight / totalWeight) * 100 * 100) / 100,
       gazua: Math.round((bullWeight / totalWeight) * 100 * 100) / 100,
+      antIndex:
+        bullBearSum === 0
+          ? 50
+          : Math.round((bullWeight / bullBearSum) * 100 * 100) / 100,
       totalPosts,
     };
   }
