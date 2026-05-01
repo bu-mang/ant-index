@@ -1,4 +1,4 @@
-// 종목 리스트 테이블 — 메인 대시보드에서 30개 종목을 ㅅㅂ/가즈아 지수와 함께 보여줌
+// 종목 리스트 테이블 — 메인 대시보드에서 30개 종목을 통합 개미지표와 함께 보여줌
 "use client";
 
 import Image from "next/image";
@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import type { Stock } from "@/lib/api";
-import { getLabel, SB_LABELS, GAZUA_LABELS } from "@/lib/constants";
+import { getLabel, ANT_INDEX_LABELS } from "@/lib/constants";
 
 interface StockTableProps {
   stocks: Stock[];
@@ -31,11 +31,13 @@ function StockLogo({ code, name }: { code: string; name: string }) {
   );
 }
 
-function getIndexColor(value: number | null) {
+function getAntIndexColor(value: number | null) {
   if (value === null) return "text-muted-foreground";
-  if (value >= 60) return "text-sb font-bold";
-  if (value >= 40) return "text-[#d4ab28]"; /* yellow-500 */
-  return "text-gazua";
+  if (value <= 20) return "text-[#0a4fbd] dark:text-[#3d7fe0] font-bold";
+  if (value <= 40) return "text-sb";
+  if (value <= 60) return "text-foreground/80";
+  if (value <= 80) return "text-gazua";
+  return "text-[#b34400] dark:text-[#ff7a33] font-bold";
 }
 
 export function StockTable({ stocks }: StockTableProps) {
@@ -43,10 +45,9 @@ export function StockTable({ stocks }: StockTableProps) {
     <>
       <Table className="table-fixed">
         <colgroup>
-          <col className="w-[40%]" />
-          <col className="w-[20%]" />
-          <col className="w-[20%]" />
-          <col className="w-[20%]" />
+          <col className="w-[45%]" />
+          <col className="w-[25%]" />
+          <col className="w-[30%]" />
         </colgroup>
         <TableBody>
           {stocks.map((stock) => (
@@ -93,33 +94,17 @@ export function StockTable({ stocks }: StockTableProps) {
                 </div>
               </TableCell>
               <TableCell
-                className={`text-right pr-5 ${getIndexColor(stock.sbIndex)}`}
+                className={`text-right pr-10 ${getAntIndexColor(stock.antIndex)}`}
               >
                 <div className="flex flex-col">
                   <span className="font-semibold">
-                    {stock.sbIndex !== null
-                      ? getLabel(stock.sbIndex, SB_LABELS)
+                    {stock.antIndex !== null
+                      ? getLabel(stock.antIndex, ANT_INDEX_LABELS)
                       : "-"}
                   </span>
-                  {stock.sbIndex !== null && (
+                  {stock.antIndex !== null && (
                     <span className="text-xs opacity-50">
-                      {stock.sbIndex.toFixed(1)}
-                    </span>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell
-                className={`text-right pr-10 ${getIndexColor(stock.gazuaIndex)}`}
-              >
-                <div className="flex flex-col">
-                  <span className="font-semibold">
-                    {stock.gazuaIndex !== null
-                      ? getLabel(stock.gazuaIndex, GAZUA_LABELS)
-                      : "-"}
-                  </span>
-                  {stock.gazuaIndex !== null && (
-                    <span className="text-xs opacity-50">
-                      {stock.gazuaIndex.toFixed(1)}
+                      {stock.antIndex.toFixed(1)}
                     </span>
                   )}
                 </div>

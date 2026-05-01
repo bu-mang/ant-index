@@ -1,38 +1,33 @@
-// 종목 상세 페이지 — 개별 종목의 ㅅㅂ지수/가즈아지수 게이지 + 시계열 차트
+// 종목 상세 페이지 — 개별 종목의 통합 개미지표 게이지 + 시계열 차트
 "use client";
 
-import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GaugeChart } from "@/components/charts/gauge-chart";
 import { TimeSeriesChart } from "@/components/charts/time-series-chart";
-import { PeriodSelector } from "@/components/charts/period-selector";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   useStocks,
-  useSbIndex,
-  useGazuaIndex,
-  useSbHistory,
-  useGazuaHistory,
+  useAntIndex,
+  useAntIndexHistory,
   useSummary,
 } from "@/lib/queries";
 
 export default function StockDetailPage() {
   const params = useParams();
   const code = params.code as string;
-  const [period, setPeriod] = useState("30d");
 
-  const { data: sbIndex, isLoading: sbLoading } = useSbIndex(code);
-  const { data: gazuaIndex, isLoading: gazuaLoading } = useGazuaIndex(code);
-  const { data: sbHistory } = useSbHistory(code, period);
-  const { data: gazuaHistory } = useGazuaHistory(code, period);
+  const { data: antIndex, isLoading } = useAntIndex(code);
+  const { data: antHistory7d } = useAntIndexHistory(code, "7d");
+  const { data: antHistory30d } = useAntIndexHistory(code, "30d");
+  const { data: antHistory90d } = useAntIndexHistory(code, "90d");
   const { data: summary } = useSummary(code);
   const { data: stocks } = useStocks();
 
   const stock = stocks?.find((s) => s.code === code);
-  const isLoading = sbLoading || gazuaLoading;
-  const stockName = sbIndex?.name ?? gazuaIndex?.name ?? code;
+  const stockName = antIndex?.name ?? code;
 
   if (isLoading) {
     return (
@@ -87,44 +82,45 @@ export default function StockDetailPage() {
         </Card>
       )}
 
-      {/* 게이지 섹션 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardContent className="pt-6 flex justify-center">
+      {/* 게이지 섹션 — 통합 개미지표 */}
+      <Card>
+        <CardContent className="pt-6 flex justify-center">
+          <div className="max-w-80 w-full">
             <GaugeChart
-              value={sbIndex?.value ?? 0}
-              label={sbIndex?.label ?? "-"}
-              title="ㅅㅂ지수"
-              color="red"
-              totalPosts={sbIndex?.totalPosts}
+              value={antIndex?.value ?? 50}
+              label={antIndex?.label ?? "-"}
+              title="개미지표"
+              color="gradient"
+              totalPosts={antIndex?.totalPosts}
             />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6 flex justify-center">
-            <GaugeChart
-              value={gazuaIndex?.value ?? 0}
-              label={gazuaIndex?.label ?? "-"}
-              title="가즈아지수"
-              color="green"
-              totalPosts={gazuaIndex?.totalPosts}
-            />
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* 시계열 차트 */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle className="text-base">지표 추이</CardTitle>
-          <PeriodSelector value={period} onChange={setPeriod} />
         </CardHeader>
         <CardContent>
-          <TimeSeriesChart
-            sbData={sbHistory?.data}
-            gazuaData={gazuaHistory?.data}
-          />
+          <Tabs defaultValue="30d">
+            <div className="flex items-center justify-end mb-4">
+              <TabsList>
+                <TabsTrigger value="7d">7일</TabsTrigger>
+                <TabsTrigger value="30d">30일</TabsTrigger>
+                <TabsTrigger value="90d">90일</TabsTrigger>
+              </TabsList>
+            </div>
+            <TabsContent value="7d">
+              <TimeSeriesChart data={antHistory7d?.data} />
+            </TabsContent>
+            <TabsContent value="30d">
+              <TimeSeriesChart data={antHistory30d?.data} />
+            </TabsContent>
+            <TabsContent value="90d">
+              <TimeSeriesChart data={antHistory90d?.data} />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

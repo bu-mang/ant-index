@@ -3,9 +3,9 @@
 
 interface GaugeChartProps {
   value: number; // 0~100
-  label: string; // "평온", "매우 공포" 등
-  title: string; // "ㅅㅂ지수", "가즈아지수"
-  color: "red" | "green";
+  label: string;
+  title: string;
+  color: "blue" | "orange" | "gradient";
   totalPosts?: number;
 }
 
@@ -17,27 +17,47 @@ export function GaugeChart({
   totalPosts,
 }: GaugeChartProps) {
   const angle = (value / 100) * 180;
-  const cssColor = color === "red" ? "var(--sb)" : "var(--gazua)";
-
-  // 호 길이 계산 (반지름 80, 반원 = π * 80 ≈ 251.2)
-  const arcLength = 251.2;
+  const arcLength = 251.2; // 반지름 80, 반원 = π * 80
   const filledLength = (angle / 180) * arcLength;
+
+  // gradient 모드: 값에 따라 파랑↔오렌지 보간
+  const isGradient = color === "gradient";
+  const cssColor = isGradient
+    ? "url(#gauge-gradient)"
+    : color === "blue"
+      ? "var(--sb)"
+      : "var(--gazua)";
+
+  // 중앙 숫자 색: gradient일 때 값 기반 보간
+  const textColor = isGradient
+    ? `color-mix(in srgb, var(--sb) ${100 - value}%, var(--gazua))`
+    : color === "blue"
+      ? "var(--sb)"
+      : "var(--gazua)";
 
   return (
     <div className="flex flex-col items-center gap-1 flex-1">
       <h3 className="text-xs font-medium text-muted-foreground">{title}</h3>
 
-      {/* SVG 반원 게이지 */}
       <div className="relative w-full aspect-200/120">
         <svg viewBox="0 0 200 120" className="w-full h-full">
+          {isGradient && (
+            <defs>
+              <linearGradient id="gauge-gradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="var(--sb)" />
+                <stop offset="100%" stopColor="var(--gazua)" />
+              </linearGradient>
+            </defs>
+          )}
           {/* 배경 트랙 */}
           <path
             d="M 20 100 A 80 80 0 0 1 180 100"
             fill="none"
-            stroke="currentColor"
+            stroke={isGradient ? "url(#gauge-gradient)" : "currentColor"}
             strokeWidth="8"
             strokeLinecap="round"
-            className="text-muted/80"
+            className={isGradient ? undefined : "text-muted/80"}
+            opacity={isGradient ? 0.2 : 1}
           />
           {/* 값 호 */}
           <path
@@ -53,7 +73,7 @@ export function GaugeChart({
             x="100"
             y="88"
             textAnchor="middle"
-            fill={cssColor}
+            fill={textColor}
             style={{ fontSize: "32px", fontWeight: 700 }}
           >
             {value.toFixed(1)}
@@ -71,7 +91,6 @@ export function GaugeChart({
         </svg>
       </div>
 
-      {/* 글 수 */}
       {totalPosts !== undefined && (
         <span className="text-xs text-muted-foreground/60">
           {totalPosts.toLocaleString()}개 글 기반

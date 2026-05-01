@@ -59,7 +59,7 @@
   /* Seed Design 팔레트 기반 — Light */
   --background: #ffffff; /* gray-00 */
   --foreground: #1a1c20; /* gray-1000 */
-  --card: #ffffff; /* gray-00 */
+  --card: #f7f8f9; /* gray-100 */
   --card-foreground: #1a1c20; /* gray-1000 */
   --popover: #ffffff; /* gray-00 */
   --popover-foreground: #1a1c20; /* gray-1000 */
@@ -78,10 +78,10 @@
   --accent: #ff6600; /* carrot-600 */
   --accent-foreground: #ffffff; /* gray-00 */
 
-  /* 지표 컬러 — ㅅㅂ(레드), 가즈아(그린) */
-  --sb: #fa342c; /* red-700 */
+  /* 지표 컬러 — 돔황챠(블루), 가즈아(오렌지) */
+  --sb: #217cf9; /* blue-600 */
   --sb-foreground: #ffffff;
-  --gazua: #079171; /* green-700 */
+  --gazua: #ff6600; /* carrot-600 */
   --gazua-foreground: #ffffff;
 
   --destructive: #fa342c; /* red-700 */
@@ -90,8 +90,8 @@
   --ring: #ff6600; /* carrot-600 */
 
   /* 차트 */
-  --chart-1: #fa342c; /* red-700 (SB) */
-  --chart-2: #079171; /* green-700 (가즈아) */
+  --chart-1: #217cf9; /* blue-600 (돔황챠) */
+  --chart-2: #ff6600; /* carrot-600 (가즈아) */
   --chart-3: #ff6600; /* carrot-600 (액센트) */
   --chart-4: #868b94; /* gray-700 */
   --chart-5: #555d6d; /* gray-800 */
@@ -107,8 +107,9 @@
   --sidebar-accent-foreground: #2a3038; /* gray-900 */
   --sidebar-border: #eeeff1; /* gray-300 */
   --sidebar-ring: #ff6600; /* carrot-600 */
-  --hover-muted: #dcdee3; /* gray-400 */
+  --hover-muted: #eeeff1; /* gray-300 */
   --content-area: #eeeeee;
+  --dot-color: #ffffff;
 }
 
 .dark {
@@ -135,9 +136,9 @@
   --accent-foreground: #1a1c20; /* gray-1000 */
 
   /* 지표 컬러 — 다크에서 밝게 */
-  --sb: #fc6a66; /* red-600 */
+  --sb: #5ba3fc; /* blue-400 */
   --sb-foreground: #ffffff;
-  --gazua: #10ab7d; /* green-600 */
+  --gazua: #ff9364; /* carrot-500 */
   --gazua-foreground: #ffffff;
 
   --destructive: #fc6a66; /* red-600 */
@@ -146,8 +147,8 @@
   --ring: #ff9364; /* carrot-500 */
 
   /* 차트 */
-  --chart-1: #fc6a66; /* red-600 */
-  --chart-2: #10ab7d; /* green-600 */
+  --chart-1: #5ba3fc; /* blue-400 (돔황챠) */
+  --chart-2: #ff9364; /* carrot-500 (가즈아) */
   --chart-3: #ff9364; /* carrot-500 */
   --chart-4: #868b94; /* gray-700 */
   --chart-5: #555d6d; /* gray-800 */
@@ -163,6 +164,7 @@
   --sidebar-ring: #ff9364; /* carrot-500 */
   --hover-muted: #555d6d44; /* gray-800 / 27% */
   --content-area: #222222;
+  --dot-color: #1a1c20;
 }
 
 @layer base {
@@ -183,6 +185,18 @@
       var(--background) 420px
     );
     pointer-events: none;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(circle, var(--dot-color) 0.8px, transparent 0.8px);
+    background-size: 8px 8px;
+    opacity: 1;
+    pointer-events: none;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='1' seed='42'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0 1 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='1' seed='42'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0 1 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
   html {
     @apply font-sans;
