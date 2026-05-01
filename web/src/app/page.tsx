@@ -73,8 +73,12 @@ export default function DashboardPage() {
     <>
       {/* 헤더 — fixed, 사이드바 영역 제외 */}
       <header className="fixed top-0 left-0 lg:right-132 right-0 h-14 z-10">
-        <nav className="max-w-432 mx-auto px-12 h-full flex items-end pb-2 justify-between">
-          <Link href="/" className="text-lg font-extrabold tracking-tight">
+        <nav className="max-w-432 mx-auto px-12 h-full flex items-center justify-between">
+          <Link
+            href="/"
+            className="text-xl font-bold tracking-tight"
+            style={{ fontFamily: '"SeoulNotice", sans-serif', fontWeight: 900 }}
+          >
             개미지표
           </Link>
           <ThemeToggle />
@@ -82,7 +86,7 @@ export default function DashboardPage() {
       </header>
 
       {/* 본문 — 헤더 아래, 사이드바 왼쪽 */}
-      <main className="pt-14 lg:mr-132">
+      <main className="pt-14 lg:mr-132 min-h-screen">
         <div className="max-w-432 mx-auto px-12 py-6 space-y-6">
           {/* 메인 배너 — 한줄평 + 게이지 (중앙) + 개미 이미지 (우하단 고정) */}
           <section className="relative py-8">
@@ -91,7 +95,13 @@ export default function DashboardPage() {
               {marketSummary?.summary && (
                 <div className="flex flex-col items-center gap-3">
                   <Badge variant="default">증시요약</Badge>
-                  <p className="text-4xl text-center font-extrabold max-w-150 leading-snug break-keep">
+                  <p
+                    className="text-4xl text-center font-extrabold max-w-150 leading-snug break-keep"
+                    style={{
+                      fontFamily: '"SeoulNotice", sans-serif',
+                      fontWeight: 900,
+                    }}
+                  >
                     {marketSummary.summary}
                   </p>
                 </div>
@@ -141,7 +151,15 @@ export default function DashboardPage() {
       <aside className="hidden lg:flex flex-col w-132 fixed right-0 top-0 bottom-0 border-l border-border bg-sidebar">
         <div className="shrink-0 border-b border-border">
           <div className="h-14  flex items-end pb-3.5 px-6">
-            <h2 className="text-base font-bold">종목별 지표</h2>
+            <h2
+              className="text-base font-bold"
+              style={{
+                fontFamily: '"SeoulNotice", sans-serif',
+                fontWeight: 900,
+              }}
+            >
+              종목별 지수
+            </h2>
           </div>
           <table className="w-full table-fixed text-sm h-10">
             <colgroup>

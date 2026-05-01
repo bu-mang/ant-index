@@ -216,19 +216,27 @@ export class IndexService {
       .orderBy(schema.indexSnapshots.periodEnd);
 
     if (snapshots.length > 0) {
+      // 스냅샷을 일별로 그룹핑 (같은 날 여러 스냅샷 → 마지막 값 사용)
+      const byDate = new Map<string, (typeof snapshots)[number]>();
+      for (const s of snapshots) {
+        const date = new Date(s.periodEnd).toLocaleDateString('sv-SE', {
+          timeZone: 'Asia/Seoul',
+        }); // "2026-04-28"
+        byDate.set(date, s);
+      }
+
       return {
         code: stock.code,
         name: stock.name,
         indexType,
         period,
-        data: snapshots.map((s) => ({
-          value: Number(s.value),
-          rawScore: Number(s.rawScore),
-          totalPosts: s.totalPosts,
-          periodStart: s.periodStart,
-          periodEnd: s.periodEnd,
-          periodType: s.periodType,
-        })),
+        data: Array.from(byDate.entries())
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([date, s]) => ({
+            date,
+            value: Number(s.value),
+            totalPosts: s.totalPosts,
+          })),
       };
     }
 

@@ -1,25 +1,32 @@
-// 시계열 차트 — Recharts 라인 차트로 ㅅㅂ지수/가즈아지수 추이를 보여줌
-'use client';
+// 시계열 차트 — 바 차트 + 라인 차트 동시 렌더
+"use client";
 
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts';
-import type { HistoryDataPoint } from '@/lib/api';
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import type { HistoryDataPoint } from "@/lib/api";
 
 interface TimeSeriesChartProps {
   sbData?: HistoryDataPoint[];
   gazuaData?: HistoryDataPoint[];
 }
 
+const chartConfig = {
+  sb: {
+    label: "ㅅㅂ지수",
+    color: "var(--sb)",
+  },
+  gazua: {
+    label: "가즈아지수",
+    color: "var(--gazua)",
+  },
+} satisfies ChartConfig;
+
 export function TimeSeriesChart({ sbData, gazuaData }: TimeSeriesChartProps) {
-  // 두 데이터셋을 날짜 기준으로 병합
   const dateMap = new Map<
     string,
     { date: string; sb?: number; gazua?: number }
@@ -40,51 +47,65 @@ export function TimeSeriesChart({ sbData, gazuaData }: TimeSeriesChartProps) {
     a.date.localeCompare(b.date),
   );
 
-  if (chartData.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        데이터가 없습니다
-      </div>
-    );
-  }
+  const maxValue = Math.max(
+    ...chartData.map((d) => Math.max(d.sb ?? 0, d.gazua ?? 0)),
+  );
+  const yMax = Math.min(100, Math.ceil(maxValue + 10));
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-        <XAxis
-          dataKey="date"
-          stroke="#888"
-          fontSize={12}
-          tickFormatter={(v) => v.slice(5)} // "2026-04-27" → "04-27"
-        />
-        <YAxis stroke="#888" fontSize={12} domain={[0, 100]} />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: '#1a1a1a',
-            border: '1px solid #333',
-            borderRadius: '8px',
-          }}
-          labelStyle={{ color: '#888' }}
-        />
-        <Legend />
-        <Line
-          type="monotone"
-          dataKey="sb"
-          name="ㅅㅂ지수"
-          stroke="#ef4444"
-          strokeWidth={2}
-          dot={false}
-        />
-        <Line
-          type="monotone"
-          dataKey="gazua"
-          name="가즈아지수"
-          stroke="#22c55e"
-          strokeWidth={2}
-          dot={false}
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div>
+      <ChartContainer config={chartConfig} className="h-75 w-full">
+        {chartData.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-muted-foreground">
+            데이터가 없습니다
+          </div>
+        ) : (
+          <BarChart
+            data={chartData}
+            margin={{ top: 8, right: 8, bottom: 0, left: -16 }}
+          >
+            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+            <XAxis
+              dataKey="date"
+              tickLine={false}
+              axisLine={true}
+              fontSize={12}
+              tickMargin={8}
+              tickFormatter={(v) => v?.slice(5)}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={true}
+              fontSize={12}
+              tickMargin={8}
+              domain={[0, yMax]}
+            />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Bar
+              dataKey="sb"
+              fill="var(--color-sb)"
+              radius={[4, 4, 0, 0]}
+              opacity={1}
+            />
+            <Bar
+              dataKey="gazua"
+              fill="var(--color-gazua)"
+              radius={[4, 4, 0, 0]}
+              opacity={1}
+            />
+          </BarChart>
+        )}
+      </ChartContainer>
+      <div className="flex items-center justify-center gap-4 pt-3 text-xs">
+        <div className="flex items-center gap-1.5">
+          <div className="h-2 w-2 shrink-0 rounded-[2px]" style={{ backgroundColor: "var(--color-sb)" }} />
+          ㅅㅂ지수
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="h-2 w-2 shrink-0 rounded-[2px]" style={{ backgroundColor: "var(--color-gazua)" }} />
+          가즈아지수
+        </div>
+      </div>
+    </div>
   );
 }

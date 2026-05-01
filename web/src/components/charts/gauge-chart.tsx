@@ -3,7 +3,7 @@
 
 interface GaugeChartProps {
   value: number; // 0~100
-  label: string; // "평온", "극도의 분노" 등
+  label: string; // "평온", "매우 공포" 등
   title: string; // "ㅅㅂ지수", "가즈아지수"
   color: "red" | "green";
   totalPosts?: number;
@@ -16,64 +16,65 @@ export function GaugeChart({
   color,
   totalPosts,
 }: GaugeChartProps) {
-  // 게이지 각도 계산 (0~180도)
   const angle = (value / 100) * 180;
-  const colorClass = color === "red" ? "text-sb" : "text-gazua";
-  const bgGradient =
-    color === "red"
-      ? "from-sb/20 to-sb/5"
-      : "from-gazua/20 to-gazua/5";
+  const cssColor = color === "red" ? "var(--sb)" : "var(--gazua)";
+
+  // 호 길이 계산 (반지름 80, 반원 = π * 80 ≈ 251.2)
+  const arcLength = 251.2;
+  const filledLength = (angle / 180) * arcLength;
 
   return (
-    <div className="flex flex-col items-center gap-2 flex-1">
-      <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+    <div className="flex flex-col items-center gap-1 flex-1">
+      <h3 className="text-xs font-medium text-muted-foreground">{title}</h3>
 
       {/* SVG 반원 게이지 */}
-      <div className="relative w-full aspect-200/110">
-        <svg viewBox="0 0 200 110" className="w-full h-full">
-          {/* 배경 호 */}
+      <div className="relative w-full aspect-200/120">
+        <svg viewBox="0 0 200 120" className="w-full h-full">
+          {/* 배경 트랙 */}
           <path
             d="M 20 100 A 80 80 0 0 1 180 100"
             fill="none"
             stroke="currentColor"
-            strokeWidth="12"
+            strokeWidth="8"
             strokeLinecap="round"
-            className="text-muted-foreground/20"
+            className="text-muted/80"
           />
           {/* 값 호 */}
           <path
             d="M 20 100 A 80 80 0 0 1 180 100"
             fill="none"
-            stroke="currentColor"
-            strokeWidth="12"
+            stroke={cssColor}
+            strokeWidth="8"
             strokeLinecap="round"
-            strokeDasharray={`${(angle / 180) * 251.2} 251.2`}
-            className={colorClass}
+            strokeDasharray={`${filledLength} ${arcLength}`}
           />
           {/* 중앙 수치 */}
           <text
             x="100"
-            y="85"
+            y="88"
             textAnchor="middle"
-            className={`${colorClass} fill-current text-3xl font-bold`}
-            style={{ fontSize: "36px", fontWeight: 700 }}
+            fill={cssColor}
+            style={{ fontSize: "32px", fontWeight: 700 }}
           >
             {value.toFixed(1)}
+          </text>
+          {/* 레이블 */}
+          <text
+            x="100"
+            y="108"
+            textAnchor="middle"
+            className="fill-muted-foreground"
+            style={{ fontSize: "12px", fontWeight: 500 }}
+          >
+            {label}
           </text>
         </svg>
       </div>
 
-      {/* 레이블 */}
-      <span
-        className={`text-sm font-semibold px-3 py-1 rounded-full bg-linear-to-r ${bgGradient} ${colorClass}`}
-      >
-        {label}
-      </span>
-
       {/* 글 수 */}
       {totalPosts !== undefined && (
-        <span className="text-xs text-muted-foreground">
-          {totalPosts}개 글 기반
+        <span className="text-xs text-muted-foreground/60">
+          {totalPosts.toLocaleString()}개 글 기반
         </span>
       )}
     </div>

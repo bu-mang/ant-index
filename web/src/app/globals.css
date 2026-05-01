@@ -10,6 +10,7 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -51,114 +52,117 @@
   --color-gazua: var(--gazua);
   --color-gazua-foreground: var(--gazua-foreground);
   --color-hover-muted: var(--hover-muted);
+  --color-content-area: var(--content-area);
 }
 
 :root {
   /* Seed Design 팔레트 기반 — Light */
-  --background: #ffffff;          /* gray-00 */
-  --foreground: #1a1c20;          /* gray-1000 */
-  --card: #ffffff;                /* gray-00 */
-  --card-foreground: #1a1c20;    /* gray-1000 */
-  --popover: #ffffff;             /* gray-00 */
+  --background: #ffffff; /* gray-00 */
+  --foreground: #1a1c20; /* gray-1000 */
+  --card: #ffffff; /* gray-00 */
+  --card-foreground: #1a1c20; /* gray-1000 */
+  --popover: #ffffff; /* gray-00 */
   --popover-foreground: #1a1c20; /* gray-1000 */
 
   /* primary: 블랙 계열 */
-  --primary: #1a1c20;             /* gray-1000 */
-  --primary-foreground: #ffffff;  /* gray-00 */
+  --primary: #1a1c20; /* gray-1000 */
+  --primary-foreground: #ffffff; /* gray-00 */
 
   /* secondary / muted */
-  --secondary: #f3f4f5;           /* gray-200 */
+  --secondary: #f3f4f5; /* gray-200 */
   --secondary-foreground: #2a3038; /* gray-900 */
-  --muted: #f3f4f5;               /* gray-200 */
-  --muted-foreground: #868b94;    /* gray-700 */
+  --muted: #f3f4f5; /* gray-200 */
+  --muted-foreground: #868b94; /* gray-700 */
 
   /* accent: 당근 오렌지 */
-  --accent: #ff6600;              /* carrot-600 */
-  --accent-foreground: #ffffff;   /* gray-00 */
+  --accent: #ff6600; /* carrot-600 */
+  --accent-foreground: #ffffff; /* gray-00 */
 
   /* 지표 컬러 — ㅅㅂ(레드), 가즈아(그린) */
-  --sb: #fa342c;                  /* red-700 */
+  --sb: #fa342c; /* red-700 */
   --sb-foreground: #ffffff;
-  --gazua: #079171;               /* green-700 */
+  --gazua: #079171; /* green-700 */
   --gazua-foreground: #ffffff;
 
-  --destructive: #fa342c;         /* red-700 */
-  --border: #eeeff1;              /* gray-300 */
-  --input: #dcdee3;               /* gray-400 */
-  --ring: #ff6600;                /* carrot-600 */
+  --destructive: #fa342c; /* red-700 */
+  --border: #eeeff1; /* gray-300 */
+  --input: #dcdee3; /* gray-400 */
+  --ring: #ff6600; /* carrot-600 */
 
   /* 차트 */
-  --chart-1: #fa342c;             /* red-700 (SB) */
-  --chart-2: #079171;             /* green-700 (가즈아) */
-  --chart-3: #ff6600;             /* carrot-600 (액센트) */
-  --chart-4: #868b94;             /* gray-700 */
-  --chart-5: #555d6d;             /* gray-800 */
+  --chart-1: #fa342c; /* red-700 (SB) */
+  --chart-2: #079171; /* green-700 (가즈아) */
+  --chart-3: #ff6600; /* carrot-600 (액센트) */
+  --chart-4: #868b94; /* gray-700 */
+  --chart-5: #555d6d; /* gray-800 */
 
   --radius: 0.625rem;
 
   /* 사이드바 */
-  --sidebar: #f7f8f9;             /* gray-100 */
-  --sidebar-foreground: #1a1c20;  /* gray-1000 */
-  --sidebar-primary: #1a1c20;    /* gray-1000 */
+  --sidebar: #f7f8f9;
+  --sidebar-foreground: #1a1c20; /* gray-1000 */
+  --sidebar-primary: #1a1c20; /* gray-1000 */
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f3f4f5;     /* gray-200 */
+  --sidebar-accent: #f3f4f5; /* gray-200 */
   --sidebar-accent-foreground: #2a3038; /* gray-900 */
-  --sidebar-border: #eeeff1;     /* gray-300 */
-  --sidebar-ring: #ff6600;       /* carrot-600 */
-  --hover-muted: #dcdee3;        /* gray-400 */
+  --sidebar-border: #eeeff1; /* gray-300 */
+  --sidebar-ring: #ff6600; /* carrot-600 */
+  --hover-muted: #dcdee3; /* gray-400 */
+  --content-area: #eeeeee;
 }
 
 .dark {
   /* Seed Design 팔레트 기반 — Dark */
-  --background: #1a1c20;          /* gray-1000 */
-  --foreground: #f3f4f5;          /* gray-200 */
-  --card: #2a3038;                /* gray-900 */
-  --card-foreground: #f3f4f5;    /* gray-200 */
-  --popover: #2a3038;             /* gray-900 */
+  --background: #1a1c20; /* gray-1000 */
+  --foreground: #f3f4f5; /* gray-200 */
+  --card: #2a3038; /* gray-900 */
+  --card-foreground: #f3f4f5; /* gray-200 */
+  --popover: #2a3038; /* gray-900 */
   --popover-foreground: #f3f4f5; /* gray-200 */
 
   /* primary: 밝은 화이트 계열 */
-  --primary: #f3f4f5;             /* gray-200 */
-  --primary-foreground: #1a1c20;  /* gray-1000 */
+  --primary: #f3f4f5; /* gray-200 */
+  --primary-foreground: #1a1c20; /* gray-1000 */
 
   /* secondary / muted */
-  --secondary: #2a3038;           /* gray-900 */
+  --secondary: #2a3038; /* gray-900 */
   --secondary-foreground: #f3f4f5; /* gray-200 */
-  --muted: #2a3038;               /* gray-900 */
-  --muted-foreground: #b0b3ba;    /* gray-600 */
+  --muted: #2a3038; /* gray-900 */
+  --muted-foreground: #b0b3ba; /* gray-600 */
 
   /* accent: 당근 오렌지 (다크에서 밝게) */
-  --accent: #ff9364;              /* carrot-500 */
-  --accent-foreground: #1a1c20;   /* gray-1000 */
+  --accent: #ff9364; /* carrot-500 */
+  --accent-foreground: #1a1c20; /* gray-1000 */
 
   /* 지표 컬러 — 다크에서 밝게 */
-  --sb: #fc6a66;                  /* red-600 */
+  --sb: #fc6a66; /* red-600 */
   --sb-foreground: #ffffff;
-  --gazua: #10ab7d;               /* green-600 */
+  --gazua: #10ab7d; /* green-600 */
   --gazua-foreground: #ffffff;
 
-  --destructive: #fc6a66;         /* red-600 */
-  --border: #555d6d33;            /* gray-800 / 20% */
-  --input: #555d6d66;             /* gray-800 / 40% */
-  --ring: #ff9364;                /* carrot-500 */
+  --destructive: #fc6a66; /* red-600 */
+  --border: #555d6d33; /* gray-800 / 20% */
+  --input: #555d6d66; /* gray-800 / 40% */
+  --ring: #ff9364; /* carrot-500 */
 
   /* 차트 */
-  --chart-1: #fc6a66;             /* red-600 */
-  --chart-2: #10ab7d;             /* green-600 */
-  --chart-3: #ff9364;             /* carrot-500 */
-  --chart-4: #868b94;             /* gray-700 */
-  --chart-5: #555d6d;             /* gray-800 */
+  --chart-1: #fc6a66; /* red-600 */
+  --chart-2: #10ab7d; /* green-600 */
+  --chart-3: #ff9364; /* carrot-500 */
+  --chart-4: #868b94; /* gray-700 */
+  --chart-5: #555d6d; /* gray-800 */
 
   /* 사이드바 */
-  --sidebar: #2a3038;             /* gray-900 */
-  --sidebar-foreground: #f3f4f5;  /* gray-200 */
-  --sidebar-primary: #ff9364;    /* carrot-500 */
+  --sidebar: #2a3038;
+  --sidebar-foreground: #f3f4f5; /* gray-200 */
+  --sidebar-primary: #ff9364; /* carrot-500 */
   --sidebar-primary-foreground: #1a1c20;
-  --sidebar-accent: #555d6d33;   /* gray-800 / 20% */
+  --sidebar-accent: #555d6d33; /* gray-800 / 20% */
   --sidebar-accent-foreground: #f3f4f5;
-  --sidebar-border: #555d6d33;   /* gray-800 / 20% */
-  --sidebar-ring: #ff9364;       /* carrot-500 */
-  --hover-muted: #555d6d44;      /* gray-800 / 27% */
+  --sidebar-border: #555d6d33; /* gray-800 / 20% */
+  --sidebar-ring: #ff9364; /* carrot-500 */
+  --hover-muted: #555d6d44; /* gray-800 / 27% */
+  --content-area: #222222;
 }
 
 @layer base {
@@ -167,6 +171,18 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--accent) 30%, var(--background)) 0%,
+      var(--background) 420px
+    );
+    pointer-events: none;
   }
   html {
     @apply font-sans;
