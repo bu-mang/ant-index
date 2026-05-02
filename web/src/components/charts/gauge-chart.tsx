@@ -104,6 +104,7 @@ function Needle({ cx, cy, angle }: { cx: number; cy: number; angle: number }) {
     <polygon
       points={`${bx1},${by1} ${tx1},${ty1} ${tx2},${ty2} ${bx2},${by2}`}
       className="fill-foreground"
+      filter="url(#needle-shadow)"
     />
   );
 }
@@ -136,8 +137,8 @@ export function GaugeChart({
     <div className="flex flex-col items-center gap-1 flex-1">
       <h3 className="text-lg font-bold text-muted-foreground">{title}</h3>
 
-      <div className="relative w-full aspect-2084/1400">
-        <svg viewBox="0 0 2084 1400" className="w-full h-full overflow-visible">
+      <div className="relative w-full aspect-2084/1100">
+        <svg viewBox="0 0 2084 1100" className="w-full h-full overflow-visible">
           {/* 5개 섹션 */}
           {SECTION_PATHS.map((d, i) => {
             const isActive = i === activeIdx;
@@ -212,6 +213,12 @@ export function GaugeChart({
             />
           ))}
 
+          {/* 바늘 그림자 */}
+          <defs>
+            <filter id="needle-shadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="14" stdDeviation="10" floodColor="var(--foreground)" floodOpacity="0.35" />
+            </filter>
+          </defs>
           {/* 바늘 (테이퍼: 중심 굵고 끝 약간 뾰족) */}
           <Needle cx={NEEDLE_CX} cy={NEEDLE_CY} angle={needleDeg} />
           <circle
