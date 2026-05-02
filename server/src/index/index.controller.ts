@@ -65,4 +65,10 @@ export class MarketController {
   getMarketSummary() {
     return this.indexService.getMarketSummary();
   }
+
+  // GET /api/market/ant-index/history?period=7d|30d|90d — 전체 시장 개미지표 히스토리
+  @Get('ant-index/history')
+  getMarketAntIndexHistory(@Query('period') period?: string) {
+    return this.indexService.getMarketAntIndexHistory(period);
+  }
 }

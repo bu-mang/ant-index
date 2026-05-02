@@ -77,6 +77,14 @@ export function useSummary(code: string) {
   });
 }
 
+export function useMarketAntIndexHistory(period = "7d") {
+  return useQuery({
+    queryKey: ["market-ant-index-history", period],
+    queryFn: () => api.getMarketAntIndexHistory(period),
+    staleTime: STALE_TIME,
+  });
+}
+
 export function useMarketSummary() {
   return useQuery({
     queryKey: ["market-summary"],

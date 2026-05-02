@@ -50,6 +50,12 @@ export interface IndexHistory {
   data: HistoryDataPoint[];
 }
 
+export interface MarketIndexHistory {
+  indexType: 'FEAR_GREED';
+  period: string;
+  data: HistoryDataPoint[];
+}
+
 export interface SummaryResult {
   code: string;
   name: string;
@@ -74,4 +80,6 @@ export const api = {
     fetchApi<SummaryResult>(`/stocks/${code}/summary`),
   getMarketSummary: () =>
     fetchApi<{ summary: string | null; createdAt: string | null }>('/market/summary'),
+  getMarketAntIndexHistory: (period = '7d') =>
+    fetchApi<MarketIndexHistory>(`/market/ant-index/history?period=${period}`),
 };

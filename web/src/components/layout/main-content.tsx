@@ -13,10 +13,7 @@ import {
 import { Construction } from "lucide-react";
 import { TaegukIcon } from "@/components/icons/taeguk";
 // import { USFlagIcon } from "@/components/icons/us-flag";
-import { useAntIndexHistory } from "@/lib/queries";
-
-// 시계열 차트용 대표 종목 (삼성전자)
-const REPRESENTATIVE_CODE = "005930";
+import { useMarketAntIndexHistory } from "@/lib/queries";
 
 interface MainContentProps {
   avgAntIndex: { value: number; label: string; totalPosts: number };
@@ -24,15 +21,9 @@ interface MainContentProps {
 }
 
 export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
-  const { data: antHistory7d } = useAntIndexHistory(REPRESENTATIVE_CODE, "7d");
-  const { data: antHistory30d } = useAntIndexHistory(
-    REPRESENTATIVE_CODE,
-    "30d",
-  );
-  const { data: antHistory90d } = useAntIndexHistory(
-    REPRESENTATIVE_CODE,
-    "90d",
-  );
+  const { data: antHistory7d } = useMarketAntIndexHistory("7d");
+  const { data: antHistory30d } = useMarketAntIndexHistory("30d");
+  const { data: antHistory90d } = useMarketAntIndexHistory("90d");
 
   return (
     <main className="pt-14 lg:mr-108 min-h-screen">
@@ -53,6 +44,15 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
             </div>
           </section>
         )}
+
+        {/* 디바이더 */}
+        <div
+          className="h-px mx-auto w-full max-w-150 opacity-30"
+          style={{
+            background:
+              "radial-gradient(circle, var(--foreground) 0%, transparent 70%)",
+          }}
+        />
 
         {/* 탭 — 차트만 전환 */}
         <Tabs defaultValue="overview">
@@ -83,7 +83,7 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
           </div>
 
           <TabsContent value="overview">
-            <section className="py-8">
+            <section className="pt-4 pb-8">
               <div className="flex justify-center max-w-208 mx-auto">
                 <GaugeChart
                   value={avgAntIndex.value}

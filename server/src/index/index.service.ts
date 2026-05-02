@@ -310,6 +310,73 @@ export class IndexService {
   }
 
   /**
+   * 전체 시장 개미지표 히스토리 — 24시간 슬라이딩 윈도우 기반 일별 추이
+   *
+   * 각 날짜의 window_end:
+   * - 과거 날짜: 그 날 자정 (= 다음 날 00:00) → window = 전날 00:00 ~ 당일 00:00 = 그 날 하루
+   * - 오늘: now() → window = 24시간 전 ~ 현재 (자정 직후에도 데이터 있음)
+   */
+  async getMarketAntIndexHistory(period = '7d') {
+    const days = PERIOD_DAYS[period] ?? 7;
+
+    const daily = await this.db.execute(sql`
+      WITH dates AS (
+        SELECT
+          d::date AS date,
+          CASE
+            WHEN d::date = (NOW() AT TIME ZONE 'Asia/Seoul')::date
+              THEN NOW()
+            ELSE ((d + interval '1 day') AT TIME ZONE 'Asia/Seoul')
+          END AS window_end
+        FROM generate_series(
+          (NOW() - ${days + ' days'}::interval)::date,
+          (NOW() AT TIME ZONE 'Asia/Seoul')::date,
+          '1 day'::interval
+        ) AS d
+      )
+      SELECT
+        dates.date::text,
+        sum(CASE WHEN p.sentiment_label = 'BULL' THEN 1 + log(greatest(p.like_count, 0) + 1) ELSE 0 END) AS bull_weight,
+        sum(CASE WHEN p.sentiment_label = 'BEAR' THEN 1 + log(greatest(p.like_count, 0) + 1) ELSE 0 END) AS bear_weight,
+        count(*)::text AS total_posts
+      FROM dates
+      JOIN posts p
+        ON p.crawled_at >= (dates.window_end - interval '24 hours')
+        AND p.crawled_at < dates.window_end
+        AND p.sentiment_label IS NOT NULL
+      JOIN stocks s
+        ON p.stock_id = s.id
+        AND s.is_active = true
+      GROUP BY dates.date
+      ORDER BY dates.date
+    `);
+
+    return {
+      indexType: 'FEAR_GREED',
+      period,
+      data: (
+        daily.rows as {
+          date: string;
+          bull_weight: string;
+          bear_weight: string;
+          total_posts: string;
+        }[]
+      ).map((d) => {
+        const bull = Number(d.bull_weight) || 0;
+        const bear = Number(d.bear_weight) || 0;
+        const sum = bull + bear;
+        const value =
+          sum === 0 ? 50 : Math.round((bull / sum) * 100 * 100) / 100;
+        return {
+          date: d.date,
+          value,
+          totalPosts: Number(d.total_posts),
+        };
+      }),
+    };
+  }
+
+  /**
    * stocks 테이블에서 analyzer가 생성한 최신 한줄평을 조회한다.
    *
    * 반환 예시: { code: "005930", name: "삼성전자", summary: "비관론 소폭 우세, 관망 분위기" }
