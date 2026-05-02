@@ -10,7 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Construction } from "lucide-react";
+import { Camera, Construction, HelpCircle } from "lucide-react";
 import { TaegukIcon } from "@/components/icons/taeguk";
 // import { USFlagIcon } from "@/components/icons/us-flag";
 import { useMarketAntIndexHistory } from "@/lib/queries";
@@ -40,9 +40,9 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
 
     const entries = [
       { label: "어제", days: 1 },
-      { label: "일주일 전", days: 7 },
-      { label: "한 달 전", days: 30 },
-      { label: "세 달 전", days: 90 },
+      { label: "최근 일주일 간", days: 7 },
+      { label: "최근 한 달 간", days: 30 },
+      { label: "최근 세 달 간", days: 90 },
     ];
 
     return entries.map((e) => {
@@ -69,7 +69,7 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
         {/* 한줄평 — 탭과 무관하게 항상 표시 */}
         {marketSummary && (
           <section className="py-16 pb-8">
-            <div className="flex flex-col items-start gap-3">
+            <div className="flex flex-col items-start gap-1.5">
               <Badge variant="default">증시요약</Badge>
               <p
                 className="text-5xl text-left font-normal max-w-150 leading-snug break-keep"
@@ -94,30 +94,59 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
 
         {/* 탭 — 차트만 전환 */}
         <Tabs defaultValue="overview">
-          <div className="flex items-center justify-start gap-4">
-            {/* 시장 선택 칩 */}
-            <Tabs defaultValue="kr">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {/* 시장 선택 칩 */}
+              <Tabs defaultValue="kr">
+                <TabsList>
+                  <TabsTrigger value="kr">
+                    <TaegukIcon className="size-3" /> 국장
+                  </TabsTrigger>
+                  <TooltipProvider delay={200}>
+                    <Tooltip>
+                      <TooltipTrigger className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-sm font-medium text-muted-foreground/40 cursor-not-allowed">
+                        {/* <USFlagIcon className="size-3" />  */}
+                        미장 <Construction className="size-3" />
+                      </TooltipTrigger>
+                      <TooltipContent>준비중</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TabsList>
+              </Tabs>
+
+              {/* 차트 탭 */}
               <TabsList>
-                <TabsTrigger value="kr">
-                  <TaegukIcon className="size-3" /> 국장
-                </TabsTrigger>
+                <TabsTrigger value="overview">현재상황</TabsTrigger>
+                <TabsTrigger value="timeline">타임라인</TabsTrigger>
+              </TabsList>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="inline-flex items-center rounded-xs bg-muted p-0.75 h-8">
                 <TooltipProvider delay={200}>
                   <Tooltip>
-                    <TooltipTrigger className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-sm font-medium text-muted-foreground/40 cursor-not-allowed">
-                      {/* <USFlagIcon className="size-3" />  */}
-                      미장 <Construction className="size-3" />
+                    <TooltipTrigger className="flex font-medium items-center gap-1 px-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-help">
+                      개미지표는 어떻게 계산되나요?
+                      <HelpCircle className="size-3.5" />
                     </TooltipTrigger>
-                    <TooltipContent>준비중</TooltipContent>
+                    <TooltipContent
+                      side="bottom"
+                      align="end"
+                      className="max-w-64 text-xs"
+                    >
+                      종목토론실 글을 AI로 감성분석하여 긍정(가즈아)·부정(ㅅㅂ)
+                      비율을 산출합니다.
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              </TabsList>
-            </Tabs>
+              </div>
 
-            {/* 차트 탭 */}
-            <TabsList>
-              <TabsTrigger value="overview">현재상황</TabsTrigger>
-              <TabsTrigger value="timeline">타임라인</TabsTrigger>
-            </TabsList>
+              <div className="inline-flex items-center rounded-xs bg-muted p-0.75 h-8">
+                <button className="inline-flex items-center justify-center size-6.25 rounded-xs bg-background border border-border text-muted-foreground hover:text-foreground shadow-sm dark:bg-transparent dark:border-[#555d6d] dark:shadow-[0_0_6px_rgba(255,255,255,0.08)] transition-colors">
+                  <Camera className="size-4" />
+                </button>
+              </div>
+            </div>
           </div>
 
           <TabsContent value="overview">
