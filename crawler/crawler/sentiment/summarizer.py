@@ -254,11 +254,7 @@ def generate_market_summary():
     avg_sb = round(sb_total / count, 2)
     avg_gazua = round(gazua_total / count, 2)
 
-    # 프리셋 선택
+    # 프리셋 선택 (LLM 없이 프리셋 그대로 사용)
     preset = MARKET_PRESETS[_to_tier(avg_sb)][_to_tier(avg_gazua)]
 
-    # LLM으로 어미/말투만 살짝 변주
-    prompt = MARKET_REPHRASE_PROMPT.format(preset=preset)
-    rephrased = call_ollama(prompt)
-
-    return rephrased if rephrased else preset
+    return preset
