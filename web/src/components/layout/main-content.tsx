@@ -23,7 +23,7 @@ export function MainContent({
   const { data: antHistory90d } = useAntIndexHistory(REPRESENTATIVE_CODE, "90d");
 
   return (
-    <main className="pt-14 lg:mr-132 min-h-screen">
+    <main className="pt-14 lg:mr-120 min-h-screen">
       <div className="max-w-432 mx-auto px-12 py-6 space-y-6">
         {/* 한줄평 — 탭과 무관하게 항상 표시 */}
         {marketSummary && (
