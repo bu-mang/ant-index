@@ -38,13 +38,13 @@ const GAZUA_LABELS = [
   { max: 100, label: '극도의 환희' },
 ];
 
-// 통합 개미지표 레이블 (0=극돔황챠, 100=극가즈아)
+// 통합 개미지표 레이블 (0=돔황챠, 100=가즈아)
 const ANT_INDEX_LABELS = [
-  { max: 20, label: '극돔황챠' },
-  { max: 40, label: '돔황챠' },
+  { max: 20, label: '돔황챠' },
+  { max: 40, label: '불안' },
   { max: 60, label: '중립' },
-  { max: 80, label: '가즈아' },
-  { max: 100, label: '극가즈아' },
+  { max: 80, label: '기대' },
+  { max: 100, label: '가즈아' },
 ];
 
 // 지표값 → 한글 레이블 변환
