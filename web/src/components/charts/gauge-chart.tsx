@@ -215,8 +215,20 @@ export function GaugeChart({
 
           {/* 바늘 그림자 */}
           <defs>
-            <filter id="needle-shadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0" dy="14" stdDeviation="10" floodColor="var(--foreground)" floodOpacity="0.35" />
+            <filter
+              id="needle-shadow"
+              x="-50%"
+              y="-50%"
+              width="200%"
+              height="200%"
+            >
+              <feDropShadow
+                dx="0"
+                dy="14"
+                stdDeviation="10"
+                floodColor="var(--foreground)"
+                floodOpacity="0.35"
+              />
             </filter>
           </defs>
           {/* 바늘 (테이퍼: 중심 굵고 끝 약간 뾰족) */}
@@ -279,10 +291,10 @@ export function GaugeChart({
           {/* 수치 */}
           <text
             x={NEEDLE_CX}
-            y={NEEDLE_CY + 20}
+            y={NEEDLE_CY + 50}
             textAnchor="middle"
             fill={textColor}
-            style={{ fontSize: "180px", fontWeight: 800 }}
+            style={{ fontSize: "164px", fontWeight: 800 }}
           >
             {value.toFixed(1)}
           </text>
@@ -291,12 +303,15 @@ export function GaugeChart({
           {totalPosts !== undefined && (
             <text
               x={80}
-              y={1080}
+              y={1090}
               textAnchor="start"
               className="fill-muted-foreground/50"
               style={{ fontSize: "38px" }}
             >
-              최근 24시간 · {totalPosts.toLocaleString()}개 글 기반
+              <tspan x={80}>
+                최근 24시간 · {totalPosts.toLocaleString()}개 글 기반 종토방
+                감성 분석
+              </tspan>
             </text>
           )}
         </svg>
