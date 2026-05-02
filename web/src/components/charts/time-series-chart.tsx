@@ -91,11 +91,11 @@ export function TimeSeriesChart({
             />
             <ChartTooltip content={<ChartTooltipContent />} />
             <Line
-              type="monotone"
+              type="linear"
               dataKey="value"
               stroke="var(--foreground)"
               strokeWidth={2}
-              dot={false}
+              dot={{ r: 3, fill: "var(--foreground)", strokeWidth: 0 }}
             />
           </LineChart>
         )}
