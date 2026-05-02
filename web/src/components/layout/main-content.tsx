@@ -4,6 +4,15 @@ import { Badge } from "@/components/ui/badge";
 import { GaugeChart } from "@/components/charts/gauge-chart";
 import { TimeSeriesChart } from "@/components/charts/time-series-chart";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Construction } from "lucide-react";
+import { TaegukIcon } from "@/components/icons/taeguk";
+// import { USFlagIcon } from "@/components/icons/us-flag";
 import { useAntIndexHistory } from "@/lib/queries";
 
 // 시계열 차트용 대표 종목 (삼성전자)
@@ -47,7 +56,26 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
 
         {/* 탭 — 차트만 전환 */}
         <Tabs defaultValue="overview">
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center gap-4">
+            {/* 시장 선택 칩 */}
+            <Tabs defaultValue="kr">
+              <TabsList>
+                <TabsTrigger value="kr">
+                  <TaegukIcon className="size-3" /> 국장
+                </TabsTrigger>
+                <TooltipProvider delay={200}>
+                  <Tooltip>
+                    <TooltipTrigger className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-sm font-medium text-muted-foreground/40 cursor-not-allowed">
+                      {/* <USFlagIcon className="size-3" />  */}
+                      미장 <Construction className="size-3" />
+                    </TooltipTrigger>
+                    <TooltipContent>준비중</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </TabsList>
+            </Tabs>
+
+            {/* 차트 탭 */}
             <TabsList>
               <TabsTrigger value="overview">현재상황</TabsTrigger>
               <TabsTrigger value="timeline">타임라인</TabsTrigger>
@@ -60,7 +88,6 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
                 <GaugeChart
                   value={avgAntIndex.value}
                   label={avgAntIndex.label}
-                  title="국내주식 개미지표"
                   color="gradient"
                   totalPosts={avgAntIndex.totalPosts}
                 />

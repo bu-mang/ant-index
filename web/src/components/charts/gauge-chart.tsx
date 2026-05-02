@@ -6,7 +6,7 @@ import { ANT_INDEX_LABELS } from "@/lib/constants";
 interface GaugeChartProps {
   value: number; // 0~100
   label: string;
-  title: string;
+  title?: string;
   color: "blue" | "orange" | "gradient";
   totalPosts?: number;
 }
