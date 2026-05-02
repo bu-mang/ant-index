@@ -66,7 +66,7 @@ export function TimeSeriesChart({
         ) : (
           <LineChart
             data={chartData}
-            margin={{ top: 8, right: 8, bottom: 0, left: -16 }}
+            margin={{ top: 24, right: 30, bottom: 0, left: -16 }}
           >
             <defs>
               <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
@@ -169,7 +169,8 @@ export function TimeSeriesChart({
                   payload: { value: number };
                 };
                 const isLast = index === chartData.length - 1;
-                const r = isLast ? 4.5 : 3;
+                const r = isLast ? 5 : 3;
+                const fontSize = isLast ? 15 : 10;
                 const lbl = getLabel(payload.value, ANT_INDEX_LABELS);
                 const dotColor = `color-mix(in srgb, var(--sb) ${100 - payload.value}%, var(--gazua))`;
                 return (
@@ -183,9 +184,9 @@ export function TimeSeriesChart({
                     />
                     <text
                       x={cx}
-                      y={cy - 10}
+                      y={cy - (isLast ? 14 : 10)}
                       textAnchor="middle"
-                      fontSize={10}
+                      fontSize={fontSize}
                       fontFamily='"Mbc1961", sans-serif'
                       fill={dotColor}
                     >

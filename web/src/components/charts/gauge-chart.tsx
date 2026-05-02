@@ -77,12 +77,40 @@ const DOTS = [
 
 // 바늘 중심 & 반지름
 const NEEDLE_CX = 1042;
-const NEEDLE_CY = 1016;
+const NEEDLE_CY = 980;
 const NEEDLE_R = 680;
+
+function Needle({ cx, cy, angle }: { cx: number; cy: number; angle: number }) {
+  const rad = (angle * Math.PI) / 180;
+  const perpRad = rad + Math.PI / 2;
+  const tipR = NEEDLE_R;
+  const tipW = 4; // 끝부분 반폭
+  const baseW = 28; // 중심부 반폭
+
+  const tx = cx + tipR * Math.cos(rad);
+  const ty = cy - tipR * Math.sin(rad);
+  // 끝부분 두 점 (약간 벌림)
+  const tx1 = tx + tipW * Math.cos(perpRad);
+  const ty1 = ty - tipW * Math.sin(perpRad);
+  const tx2 = tx - tipW * Math.cos(perpRad);
+  const ty2 = ty + tipW * Math.sin(perpRad);
+  // 중심부 두 점
+  const bx1 = cx + baseW * Math.cos(perpRad);
+  const by1 = cy - baseW * Math.sin(perpRad);
+  const bx2 = cx - baseW * Math.cos(perpRad);
+  const by2 = cy + baseW * Math.sin(perpRad);
+
+  return (
+    <polygon
+      points={`${bx1},${by1} ${tx1},${ty1} ${tx2},${ty2} ${bx2},${by2}`}
+      className="fill-foreground"
+    />
+  );
+}
 
 export function GaugeChart({
   value,
-  label,
+  // label,
   title,
   color,
   totalPosts,
@@ -92,9 +120,6 @@ export function GaugeChart({
 
   // 바늘 각도: value 0 → 180°(왼쪽), value 100 → 0°(오른쪽)
   const needleDeg = 180 - (clampedValue / 100) * 180;
-  const needleRad = (needleDeg * Math.PI) / 180;
-  const nx = NEEDLE_CX + NEEDLE_R * Math.cos(needleRad);
-  const ny = NEEDLE_CY - NEEDLE_R * Math.sin(needleRad);
 
   const isGradient = color === "gradient";
   const textColor = isGradient
@@ -187,58 +212,88 @@ export function GaugeChart({
             />
           ))}
 
-          {/* 바늘 */}
-          <line
-            x1={NEEDLE_CX}
-            y1={NEEDLE_CY}
-            x2={nx}
-            y2={ny}
-            className="stroke-foreground"
-            strokeWidth={18}
-            strokeLinecap="round"
-          />
+          {/* 바늘 (테이퍼: 중심 굵고 끝 약간 뾰족) */}
+          <Needle cx={NEEDLE_CX} cy={NEEDLE_CY} angle={needleDeg} />
           <circle
             cx={NEEDLE_CX}
             cy={NEEDLE_CY}
-            r={30}
+            r={24}
             className="fill-foreground"
           />
           <circle
             cx={NEEDLE_CX}
             cy={NEEDLE_CY}
-            r={14}
+            r={10}
+            className="fill-background"
+          />
+
+          {/* 중심 반원 (숫자 배경) */}
+          <defs>
+            <filter
+              id="semicircle-shadow"
+              x="-20%"
+              y="-20%"
+              width="140%"
+              height="120%"
+            >
+              <feDropShadow
+                dx="0"
+                dy="-4"
+                stdDeviation="32"
+                floodColor="var(--foreground)"
+                floodOpacity="0.1"
+              />
+            </filter>
+            <clipPath id="semicircle-clip">
+              <rect
+                x={NEEDLE_CX - 300}
+                y={NEEDLE_CY + 50 - 300}
+                width={600}
+                height={300}
+              />
+            </clipPath>
+          </defs>
+          <g clipPath="url(#semicircle-clip)">
+            <path
+              d={`M${NEEDLE_CX - 250},${NEEDLE_CY + 50} A250,250 0 0 1 ${NEEDLE_CX + 250},${NEEDLE_CY + 50} Z`}
+              className="fill-background"
+              filter="url(#semicircle-shadow)"
+            />
+          </g>
+          {/* 하단 직선부 그림자 가림 */}
+          <rect
+            x={NEEDLE_CX - 260}
+            y={NEEDLE_CY + 50}
+            width={520}
+            height={30}
             className="fill-background"
           />
 
           {/* 수치 */}
           <text
             x={NEEDLE_CX}
-            y={NEEDLE_CY + 170}
+            y={NEEDLE_CY - 10}
             textAnchor="middle"
             fill={textColor}
-            style={{ fontSize: "160px", fontWeight: 800 }}
+            style={{ fontSize: "144px", fontWeight: 800 }}
           >
             {value.toFixed(1)}
           </text>
 
-          {/* 레이블 */}
-          {/* <text
-            x={NEEDLE_CX}
-            y={NEEDLE_CY + 270}
-            textAnchor="middle"
-            fill={textColor}
-            style={{ fontSize: "70px", fontWeight: 400, fontFamily: '"Mbc1961", sans-serif' }}
-          >
-            {label}
-          </text> */}
+          {/* N개 글 기반 */}
+          {totalPosts !== undefined && (
+            <text
+              x={NEEDLE_CX}
+              y={NEEDLE_CY + 40}
+              textAnchor="middle"
+              className="fill-muted-foreground/60"
+              style={{ fontSize: "40px" }}
+            >
+              {totalPosts.toLocaleString()}개 글 기반
+            </text>
+          )}
         </svg>
       </div>
-
-      {totalPosts !== undefined && (
-        <span className="text-xs text-muted-foreground/60 -mt-10">
-          {totalPosts.toLocaleString()}개 글 기반
-        </span>
-      )}
     </div>
   );
 }
