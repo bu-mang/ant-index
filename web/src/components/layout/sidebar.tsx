@@ -9,11 +9,11 @@ interface SidebarProps {
 
 export function Sidebar({ stocks }: SidebarProps) {
   return (
-    <aside className="hidden lg:flex flex-col w-120 fixed right-0 top-0 bottom-0 border-l border-border bg-sidebar">
+    <aside className="hidden lg:flex flex-col w-108 fixed right-0 top-0 bottom-0 border-l border-border bg-sidebar">
       <div className="shrink-0 border-b border-border">
         <div className="h-14  flex items-end pb-3.5 px-6">
           <h2
-            className="text-base font-bold"
+            className="text-base font-normal"
             style={{
               fontFamily: '"Mbc1961", sans-serif',
                           }}
