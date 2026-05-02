@@ -1,6 +1,15 @@
 "use client";
 
 import { StockTable } from "@/components/stock-table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TaegukIcon } from "@/components/icons/taeguk";
+import { Construction } from "lucide-react";
 import type { Stock } from "@/lib/api";
 
 interface SidebarProps {
@@ -11,16 +20,33 @@ export function Sidebar({ stocks }: SidebarProps) {
   return (
     <aside className="hidden lg:flex flex-col w-108 fixed right-0 top-0 bottom-0 border-l border-border bg-sidebar">
       <div className="shrink-0 border-b border-border">
-        <div className="h-14  flex items-end pb-3.5 px-6">
+        <div className="h-14 flex items-end justify-between pb-3.5 px-6">
           <h2
             className="text-base font-normal"
             style={{
               fontFamily: '"Mbc1961", sans-serif',
-                          }}
+            }}
           >
             종목별 지수
           </h2>
+
+          <Tabs defaultValue="kr">
+            <TabsList>
+              <TabsTrigger value="kr">
+                <TaegukIcon className="size-3" /> 국장
+              </TabsTrigger>
+              <TooltipProvider delay={200}>
+                <Tooltip>
+                  <TooltipTrigger className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-sm font-medium text-muted-foreground/40 cursor-not-allowed">
+                    미장 <Construction className="size-3" />
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">준비중</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </TabsList>
+          </Tabs>
         </div>
+
         <table className="w-full table-fixed text-sm h-10">
           <colgroup>
             <col className="w-[45%]" />
