@@ -14,16 +14,19 @@ interface MainContentProps {
   marketSummary?: string;
 }
 
-export function MainContent({
-  avgAntIndex,
-  marketSummary,
-}: MainContentProps) {
+export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
   const { data: antHistory7d } = useAntIndexHistory(REPRESENTATIVE_CODE, "7d");
-  const { data: antHistory30d } = useAntIndexHistory(REPRESENTATIVE_CODE, "30d");
-  const { data: antHistory90d } = useAntIndexHistory(REPRESENTATIVE_CODE, "90d");
+  const { data: antHistory30d } = useAntIndexHistory(
+    REPRESENTATIVE_CODE,
+    "30d",
+  );
+  const { data: antHistory90d } = useAntIndexHistory(
+    REPRESENTATIVE_CODE,
+    "90d",
+  );
 
   return (
-    <main className="pt-14 lg:mr-120 min-h-screen">
+    <main className="pt-14 lg:mr-108 min-h-screen">
       <div className="max-w-432 mx-auto px-12 py-6 space-y-6">
         {/* 한줄평 — 탭과 무관하게 항상 표시 */}
         {marketSummary && (
@@ -31,10 +34,10 @@ export function MainContent({
             <div className="flex flex-col items-center gap-3">
               <Badge variant="default">증시요약</Badge>
               <p
-                className="text-4xl text-center font-extrabold max-w-150 leading-snug break-keep"
+                className="text-4xl text-center font-normal max-w-150 leading-snug break-keep"
                 style={{
                   fontFamily: '"Mbc1961", sans-serif',
-                                  }}
+                }}
               >
                 {marketSummary}
               </p>
@@ -46,14 +49,14 @@ export function MainContent({
         <Tabs defaultValue="overview">
           <div className="flex items-center justify-center">
             <TabsList>
-              <TabsTrigger value="overview">개요</TabsTrigger>
-              <TabsTrigger value="timeline">추이</TabsTrigger>
+              <TabsTrigger value="overview">현재상황</TabsTrigger>
+              <TabsTrigger value="timeline">타임라인</TabsTrigger>
             </TabsList>
           </div>
 
           <TabsContent value="overview">
             <section className="py-8">
-              <div className="flex justify-center max-w-80 mx-auto">
+              <div className="flex justify-center max-w-208 mx-auto">
                 <GaugeChart
                   value={avgAntIndex.value}
                   label={avgAntIndex.label}
