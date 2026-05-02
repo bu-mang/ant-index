@@ -18,6 +18,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import type { HistoryDataPoint } from "@/lib/api";
+import { ANT_INDEX_LABELS, getLabel } from "@/lib/constants";
 
 interface TimeSeriesChartProps {
   // 통합 모드 (단일 라인)
@@ -67,6 +68,17 @@ export function TimeSeriesChart({
             data={chartData}
             margin={{ top: 8, right: 8, bottom: 0, left: -16 }}
           >
+            <defs>
+              <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                {chartData.map((d, i) => (
+                  <stop
+                    key={i}
+                    offset={`${(i / Math.max(chartData.length - 1, 1)) * 100}%`}
+                    stopColor={`color-mix(in srgb, var(--sb) ${100 - d.value}%, var(--gazua))`}
+                  />
+                ))}
+              </linearGradient>
+            </defs>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <XAxis
               dataKey="date"
@@ -89,13 +101,99 @@ export function TimeSeriesChart({
               strokeDasharray="4 4"
               strokeOpacity={0.4}
             />
-            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  formatter={(val) => {
+                    const v = typeof val === "number" ? val : Number(val);
+                    const lbl = getLabel(v, ANT_INDEX_LABELS);
+                    return (
+                      <span className="font-mono font-medium tabular-nums">
+                        {v.toLocaleString()} ({lbl})
+                      </span>
+                    );
+                  }}
+                />
+              }
+            />
             <Line
               type="linear"
               dataKey="value"
-              stroke="var(--foreground)"
+              stroke="url(#lineGradient)"
               strokeWidth={2}
-              dot={{ r: 3, fill: "var(--foreground)", strokeWidth: 0 }}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              activeDot={(props: any) => {
+                const cx = props.cx as number;
+                const cy = props.cy as number;
+                const val = props.payload?.value as number ?? 50;
+                const activeColor = `color-mix(in srgb, var(--sb) ${100 - val}%, var(--gazua))`;
+                return (
+                  <g>
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={8}
+                      fill={activeColor}
+                      opacity={0.15}
+                    >
+                      <animate
+                        attributeName="r"
+                        from="4"
+                        to="14"
+                        dur="1.2s"
+                        repeatCount="indefinite"
+                      />
+                      <animate
+                        attributeName="opacity"
+                        from="0.3"
+                        to="0"
+                        dur="1.2s"
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={4.5}
+                      fill={activeColor}
+                      strokeWidth={0}
+                    />
+                  </g>
+                );
+              }}
+              dot={(props: Record<string, unknown>) => {
+                const { cx, cy, index, payload } = props as {
+                  cx: number;
+                  cy: number;
+                  index: number;
+                  payload: { value: number };
+                };
+                const isLast = index === chartData.length - 1;
+                const r = isLast ? 4.5 : 3;
+                const lbl = getLabel(payload.value, ANT_INDEX_LABELS);
+                const dotColor = `color-mix(in srgb, var(--sb) ${100 - payload.value}%, var(--gazua))`;
+                return (
+                  <g key={index}>
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={r}
+                      fill={dotColor}
+                      strokeWidth={0}
+                    />
+                    <text
+                      x={cx}
+                      y={cy - 10}
+                      textAnchor="middle"
+                      fontSize={10}
+                      fontFamily='"Mbc1961", sans-serif'
+                      fill={dotColor}
+                    >
+                      {lbl}
+                    </text>
+                  </g>
+                );
+              }}
             />
           </LineChart>
         )}
