@@ -108,7 +108,7 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
                         {/* <USFlagIcon className="size-3" />  */}
                         미장 <Construction className="size-3" />
                       </TooltipTrigger>
-                      <TooltipContent>준비중</TooltipContent>
+                      <TooltipContent side="bottom">준비중</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </TabsList>
@@ -132,10 +132,18 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
                     <TooltipContent
                       side="bottom"
                       align="end"
-                      className="max-w-64 text-xs"
+                      className="max-w-64 text-xs flex flex-col"
                     >
-                      종목토론실 글을 AI로 감성분석하여 긍정(가즈아)·부정(ㅅㅂ)
-                      비율을 산출합니다.
+                      <span className="break-keep leading-relaxed">
+                        복수의 종목토론방의 글들을 AI 머신러닝으로 감성분석하여
+                        긍정(가즈아) 지수·부정(ㅅㅂ) 지수를 산출하여 아래와 같이
+                        계산합니다.
+                      </span>
+                      <span className="block mt-1.5 pt-3.5 w-full border-t border-foreground/15 font-mono text-[11px] opacity-80">
+                        지표 = Σ긍정 / (Σ긍정 + Σ부정) × 100
+                        <br />
+                        가중치 = 1 + log₁₀(공감수 + 1)
+                      </span>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

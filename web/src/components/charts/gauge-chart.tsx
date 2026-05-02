@@ -279,24 +279,24 @@ export function GaugeChart({
           {/* 수치 */}
           <text
             x={NEEDLE_CX}
-            y={NEEDLE_CY - 10}
+            y={NEEDLE_CY + 20}
             textAnchor="middle"
             fill={textColor}
-            style={{ fontSize: "144px", fontWeight: 800 }}
+            style={{ fontSize: "180px", fontWeight: 800 }}
           >
             {value.toFixed(1)}
           </text>
 
-          {/* N개 글 기반 */}
+          {/* N개 글 기반 — 좌측 하단 */}
           {totalPosts !== undefined && (
             <text
-              x={NEEDLE_CX}
-              y={NEEDLE_CY + 40}
-              textAnchor="middle"
-              className="fill-muted-foreground/60"
-              style={{ fontSize: "40px" }}
+              x={80}
+              y={1080}
+              textAnchor="start"
+              className="fill-muted-foreground/50"
+              style={{ fontSize: "38px" }}
             >
-              {totalPosts.toLocaleString()}개 글 기반
+              최근 24시간 · {totalPosts.toLocaleString()}개 글 기반
             </text>
           )}
         </svg>
