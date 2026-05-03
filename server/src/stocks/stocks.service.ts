@@ -10,21 +10,12 @@ export class StocksService {
   constructor(@Inject('drizzle') private db: NodePgDatabase<typeof schema>) {}
 
   /**
-   * 활성 종목 전체를 조회하면서, 각 종목의 최신 SB/GAZUA 지표 + 시세를 병렬로 가져온다.
-   * 프론트엔드 종목 리스트 테이블에 사용됨.
+   * isVisible=true인 종목을 조회하면서, 각 종목의 최신 지표 + 시세를 병렬로 가져온다.
+   * 프론트엔드 사이드바 종목 리스트에 사용됨.
    *
-   * @returns {Array<{
-   *   id: number,
-   *   code: string,           // "005930"
-   *   name: string,           // "삼성전자"
-   *   market: string,         // "KOSPI"
-   *   sector: string | null,  // "반도체"
-   *   isActive: boolean,
-   *   sbIndex: number | null,      // 최신 ㅅㅂ지수 (0~100), 스냅샷 없으면 null
-   *   gazuaIndex: number | null,   // 최신 가즈아지수 (0~100), 스냅샷 없으면 null
-   *   currentPrice: number | null, // 현재가 (원), 시세 데이터 없으면 null
-   *   changeRate: number | null,   // 등락률 (%), 시세 데이터 없으면 null
-   * }>}
+   * - isActive: 크롤링/분석 대상 여부 (crawler, analyzer가 참조)
+   * - isVisible: 프론트 노출 여부 (이 API가 참조)
+   *   → isActive=true, isVisible=false면 수집은 하되 프론트에 안 보임
    */
   async getActiveStocks(): Promise<StockResponseDto[]> {
     const stockList = await this.db
@@ -35,9 +26,10 @@ export class StocksService {
         market: schema.stocks.market,
         sector: schema.stocks.sector,
         isActive: schema.stocks.isActive,
+        isVisible: schema.stocks.isVisible,
       })
       .from(schema.stocks)
-      .where(eq(schema.stocks.isActive, true))
+      .where(eq(schema.stocks.isVisible, true))
       .orderBy(schema.stocks.id);
 
     // 종목 수만큼 Promise.all로 병렬 조회 — 순차보다 훨씬 빠름

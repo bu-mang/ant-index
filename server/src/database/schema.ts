@@ -37,7 +37,8 @@ export const stocks = pgTable('stocks', {
   market: marketEnum('market').notNull(), // 소속 시장
   sector: varchar('sector', { length: 100 }), // 업종 (예: '반도체', 'Technology')
   description: text('description'), // 종목 설명
-  isActive: boolean('is_active').notNull().default(true), // 비활성 종목 필터링용
+  isActive: boolean('is_active').notNull().default(true), // 크롤링/분석 대상 여부
+  isVisible: boolean('is_visible').notNull().default(false), // 프론트 노출 여부 (데이터 축적 후 true로 전환)
   summary: text('summary'), // AI 한줄평 (analyzer가 30분마다 갱신)
   summaryUpdatedAt: timestamp('summary_updated_at', { withTimezone: true }), // 한줄평 갱신 시각
   createdAt: timestamp('created_at', { withTimezone: true })

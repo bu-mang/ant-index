@@ -1,4 +1,5 @@
 // GET /api/stocks 응답 DTO — 활성 종목 목록 (최신 지표값 + 시세 포함)
+// 사이드바에 응답
 import { ApiProperty } from '@nestjs/swagger';
 
 export class StockResponseDto {
@@ -20,8 +21,11 @@ export class StockResponseDto {
   @ApiProperty({ example: '반도체', nullable: true })
   sector: string | null;
 
-  @ApiProperty({ example: true })
+  @ApiProperty({ example: true, description: '크롤링/분석 대상 여부' })
   isActive: boolean;
+
+  @ApiProperty({ example: true, description: '프론트 노출 여부' })
+  isVisible: boolean;
 
   @ApiProperty({
     example: 37.4,

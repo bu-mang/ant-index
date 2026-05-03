@@ -1,0 +1,1 @@
+ALTER TABLE "stocks" ADD COLUMN "is_visible" boolean DEFAULT false NOT NULL;
