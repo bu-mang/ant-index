@@ -28,7 +28,7 @@ export function Footer() {
                 개미지표
               </span>
             </div>
-            <p className="text-xs whitespace-pre-wrap text-muted-foreground/60 max-w-100 leading-relaxed break-keep">
+            <p className="text-xs translate-y-0.5 whitespace-pre-wrap text-muted-foreground/60 max-w-100 leading-relaxed break-keep">
               {
                 "본 지표는 커뮤니티 감성 분석 결과를 시각화한 것으로, 투자 판단의 근거로\n사용할 수 없습니다. 투자에 대한 책임은 본인에게 있습니다."
               }
@@ -44,7 +44,13 @@ export function Footer() {
                 rel="noopener noreferrer"
                 className="text-muted-foreground/50 hover:text-foreground transition-colors"
               >
-                <Image src="/icons/github.svg" alt="GitHub" width={16} height={16} className="size-4 dark:invert" />
+                <Image
+                  src="/icons/github.svg"
+                  alt="GitHub"
+                  width={16}
+                  height={16}
+                  className="size-4 dark:invert"
+                />
               </a>
               <a
                 href="https://bumang.xyz"
