@@ -71,7 +71,18 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
         {marketSummary && (
           <section className="py-16 pb-8">
             <div className="flex flex-col items-start gap-1.5">
-              <Badge variant="default">증시요약</Badge>
+              <Badge variant="default">
+                {new Date()
+                  .toLocaleDateString("ko-KR", {
+                    timeZone: "Asia/Seoul",
+                    year: "2-digit",
+                    month: "2-digit",
+                    day: "2-digit",
+                  })
+                  .replace(/\. /g, ".")
+                  .replace(/\.$/, "")}{" "}
+                개미 민심 현황
+              </Badge>
               <p
                 className="text-5xl text-left font-normal max-w-150 leading-snug break-keep"
                 style={{
