@@ -102,7 +102,7 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
             className="h-px w-full opacity-30"
             style={{
               background:
-                "linear-gradient(to right, var(--foreground) 0%, transparent 100%)",
+                "linear-gradient(to right, transparent 0%, var(--foreground) 5%, var(--foreground) 95%, transparent 100%)",
             }}
           />
         </div>

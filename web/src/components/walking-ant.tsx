@@ -5,7 +5,6 @@ import { PixelAnt } from "@/components/icons/pixel-ant";
 
 interface WalkingAntProps {
   value: number; // 개미지표 0~100
-  count?: number; // 개미 수 (기본 6)
 }
 
 // 지수 구간별 대사
@@ -19,6 +18,20 @@ const SPEECH_MAP: { max: number; lines: string[] }[] = [
   { max: 100, lines: ["가즈아!!!", "로켓발사!", "치얼쓰🍸"] },
 ];
 
+// 지수 구간별 개미 수
+function getAntCount(value: number): number {
+  if (value <= 10) return 1;
+  if (value <= 25) return 4;
+  if (value <= 60) return 6;
+  if (value <= 75) return 8;
+  return 10;
+}
+
+// 기대(75+)부터 점프 가능
+function canJump(value: number): boolean {
+  return value > 60;
+}
+
 function getSpeechLines(value: number) {
   const bucket =
     SPEECH_MAP.find((b) => value <= b.max) ?? SPEECH_MAP[SPEECH_MAP.length - 1];
@@ -26,43 +39,63 @@ function getSpeechLines(value: number) {
 }
 
 interface AntState {
+  id: number;
   posX: number; // 0~100 (%)
   direction: 1 | -1;
-  frame: 0 | 1;
+  frame: 0 | 1 | 2;
   speed: number;
   speech: string | null;
   nextSpeechAt: number;
+  jumping: boolean;
 }
 
 function initAnts(count: number): AntState[] {
   return Array.from({ length: count }, (_, i) => ({
+    id: i,
     posX: (100 / (count + 1)) * (i + 1) + (Math.random() * 10 - 5),
     direction: (Math.random() > 0.5 ? 1 : -1) as 1 | -1,
-    frame: (Math.random() > 0.5 ? 1 : 0) as 0 | 1,
+    frame: 0 as 0 | 1 | 2,
     speed: 0.3 + Math.random() * 0.4,
     speech: null,
     nextSpeechAt: Date.now() + 2000 + Math.random() * 5000,
+    jumping: false,
   }));
 }
 
-export function WalkingAnt({ value, count = 6 }: WalkingAntProps) {
-  const [ants, setAnts] = useState<AntState[]>(() => initAnts(count));
+export function WalkingAnt({ value }: WalkingAntProps) {
+  const antCount = getAntCount(value);
+  const [ants, setAnts] = useState<AntState[]>(() => initAnts(antCount));
   const speechLines = useRef(getSpeechLines(value));
+  const prevCount = useRef(antCount);
 
   useEffect(() => {
     speechLines.current = getSpeechLines(value);
   }, [value]);
 
+  // 개미 수 변경 시 재생성
+  useEffect(() => {
+    if (antCount !== prevCount.current) {
+      prevCount.current = antCount;
+      setAnts(initAnts(antCount));
+    }
+  }, [antCount]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
+      const jumpEnabled = canJump(value);
+
       setAnts((prev) =>
         prev.map((ant) => {
-          let { posX, direction, frame, speech, nextSpeechAt } = ant;
-          const { speed } = ant;
+          let { posX, direction, frame, speech, nextSpeechAt, jumping } = ant;
+          const { id, speed } = ant;
 
-          // 프레임 전환
-          frame = frame === 0 ? 1 : 0;
+          // 프레임 전환: 기대 이상이면 0↔2, 아니면 0↔1
+          if (jumpEnabled) {
+            frame = frame === 0 ? 2 : 0;
+          } else {
+            frame = frame === 0 ? 1 : 0;
+          }
 
           // 이동
           posX += direction * speed;
@@ -72,33 +105,61 @@ export function WalkingAnt({ value, count = 6 }: WalkingAntProps) {
           else if (posX <= 4) direction = 1;
           else if (Math.random() < 0.05) direction = (direction * -1) as 1 | -1;
 
+          // 점프 (기대 이상일 때, ~4% 확률)
+          if (jumpEnabled && !jumping && Math.random() < 0.04) {
+            jumping = true;
+            const antId = id;
+            setTimeout(() => {
+              setAnts((prev) =>
+                prev.map((a) =>
+                  a.id === antId ? { ...a, jumping: false } : a,
+                ),
+              );
+            }, 400);
+          }
+
           // 말풍선
           if (now >= nextSpeechAt) {
             if (speech === null) {
               const lines = speechLines.current;
               speech = lines[Math.floor(Math.random() * lines.length)];
-              nextSpeechAt = now + 2000; // 2초 후 사라짐
+              nextSpeechAt = now + 2000;
             } else {
               speech = null;
-              nextSpeechAt = now + 4000 + Math.random() * 6000; // 4~10초 후 다시
+              nextSpeechAt = now + 4000 + Math.random() * 6000;
             }
           }
 
-          return { posX, direction, frame, speed, speech, nextSpeechAt };
+          return {
+            id,
+            posX,
+            direction,
+            frame,
+            speed,
+            speech,
+            nextSpeechAt,
+            jumping,
+          };
         }),
       );
     }, 300);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [value]);
 
   return (
     <div className="relative w-full h-6">
-      {ants.map((ant, i) => (
+      {ants.map((ant) => (
         <div
-          key={i}
+          key={ant.id}
           className="absolute bottom-0 transition-all duration-300 ease-linear"
-          style={{ left: `${ant.posX}%` }}
+          style={{
+            left: `${ant.posX}%`,
+            transform: ant.jumping ? "translateY(-8px)" : undefined,
+            transition: ant.jumping
+              ? "left 300ms linear, transform 200ms ease-out"
+              : "left 300ms linear, transform 200ms ease-in",
+          }}
         >
           {ant.speech && (
             <div className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 rounded bg-foreground/10 text-[10px] font-medium text-foreground animate-in fade-in-0 zoom-in-95 duration-200">

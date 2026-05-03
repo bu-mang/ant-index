@@ -12,7 +12,7 @@ export function Footer() {
           className="h-px w-full opacity-20"
           style={{
             background:
-              "linear-gradient(to right, var(--foreground) 0%, transparent 100%)",
+              "linear-gradient(to right, transparent 0%, var(--foreground) 5%, var(--foreground) 95%, transparent 100%)",
           }}
         />
 
@@ -55,7 +55,7 @@ export function Footer() {
                 <Globe className="size-4" />
               </a>
             </div>
-            <span className="text-[10px] text-muted-foreground/40">
+            <span className="text-[10px] font-semibold text-muted-foreground/40">
               © 2026 Copyright by bumang
             </span>
           </div>
