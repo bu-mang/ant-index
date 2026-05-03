@@ -38,91 +38,93 @@ export default function StockDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* 뒤로가기 + 종목 정보 */}
-      <div className="flex items-center gap-3">
-        <Link
-          href="/"
-          className="text-muted-foreground hover:text-foreground transition text-sm"
-        >
-          ← 대시보드
-        </Link>
-      </div>
+    <main className="pt-14 lg:mr-108 min-h-screen">
+      <div className="max-w-432 mx-auto px-12 py-6 space-y-6">
+        {/* 뒤로가기 + 종목 정보 */}
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="text-muted-foreground hover:text-foreground transition text-sm"
+          >
+            ← 대시보드
+          </Link>
+        </div>
 
-      <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold">{stockName}</h1>
-        <Badge variant="secondary">{code}</Badge>
-        {stock && stock.currentPrice != null && (
-          <span className="text-lg font-semibold ml-auto">
-            {stock.currentPrice.toLocaleString()}원
-            <span
-              className={`ml-2 text-sm ${
-                (stock.changeRate ?? 0) > 0
-                  ? "text-[#fa342c]"
-                  : (stock.changeRate ?? 0) < 0
-                    ? "text-[#217cf9]"
-                    : "text-muted-foreground"
-              }`}
-            >
-              {(stock.changeRate ?? 0) > 0 ? "+" : ""}
-              {stock.changeRate?.toFixed(2)}%
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold">{stockName}</h1>
+          <Badge variant="secondary">{code}</Badge>
+          {stock && stock.currentPrice != null && (
+            <span className="text-lg font-semibold ml-auto">
+              {stock.currentPrice.toLocaleString()}원
+              <span
+                className={`ml-2 text-sm ${
+                  (stock.changeRate ?? 0) > 0
+                    ? "text-[#fa342c]"
+                    : (stock.changeRate ?? 0) < 0
+                      ? "text-[#217cf9]"
+                      : "text-muted-foreground"
+                }`}
+              >
+                {(stock.changeRate ?? 0) > 0 ? "+" : ""}
+                {stock.changeRate?.toFixed(2)}%
+              </span>
             </span>
-          </span>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* AI 한줄평 */}
-      {summary?.summary && (
+        {/* AI 한줄평 */}
+        {summary?.summary && (
+          <Card>
+            <CardContent className="py-4">
+              <p className="text-sm text-muted-foreground text-center">
+                {summary.summary}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* 게이지 섹션 — 통합 개미지표 */}
         <Card>
-          <CardContent className="py-4">
-            <p className="text-sm text-muted-foreground text-center">
-              {summary.summary}
-            </p>
+          <CardContent className="pt-6 flex justify-center">
+            <div className="max-w-80 w-full">
+              <GaugeChart
+                value={antIndex?.value ?? 50}
+                label={antIndex?.label ?? "-"}
+                title="개미지표"
+                color="gradient"
+                totalPosts={antIndex?.totalPosts}
+              />
+            </div>
           </CardContent>
         </Card>
-      )}
 
-      {/* 게이지 섹션 — 통합 개미지표 */}
-      <Card>
-        <CardContent className="pt-6 flex justify-center">
-          <div className="max-w-80 w-full">
-            <GaugeChart
-              value={antIndex?.value ?? 50}
-              label={antIndex?.label ?? "-"}
-              title="개미지표"
-              color="gradient"
-              totalPosts={antIndex?.totalPosts}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 시계열 차트 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">지표 추이</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="30d">
-            <div className="flex items-center justify-end mb-4">
-              <TabsList>
-                <TabsTrigger value="7d">7일</TabsTrigger>
-                <TabsTrigger value="30d">30일</TabsTrigger>
-                <TabsTrigger value="90d">90일</TabsTrigger>
-              </TabsList>
-            </div>
-            <TabsContent value="7d">
-              <TimeSeriesChart data={antHistory7d?.data} />
-            </TabsContent>
-            <TabsContent value="30d">
-              <TimeSeriesChart data={antHistory30d?.data} />
-            </TabsContent>
-            <TabsContent value="90d">
-              <TimeSeriesChart data={antHistory90d?.data} />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+        {/* 시계열 차트 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">지표 추이</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="30d">
+              <div className="flex items-center justify-end mb-4">
+                <TabsList>
+                  <TabsTrigger value="7d">7일</TabsTrigger>
+                  <TabsTrigger value="30d">30일</TabsTrigger>
+                  <TabsTrigger value="90d">90일</TabsTrigger>
+                </TabsList>
+              </div>
+              <TabsContent value="7d">
+                <TimeSeriesChart data={antHistory7d?.data} />
+              </TabsContent>
+              <TabsContent value="30d">
+                <TimeSeriesChart data={antHistory30d?.data} />
+              </TabsContent>
+              <TabsContent value="90d">
+                <TimeSeriesChart data={antHistory90d?.data} />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+    </main>
   );
 }

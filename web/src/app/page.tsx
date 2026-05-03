@@ -2,10 +2,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Header } from "@/components/layout/header";
 import { MainContent } from "@/components/layout/main-content";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Footer } from "@/components/layout/footer";
 import { useStocks, useMarketSummary } from "@/lib/queries";
 import { ANT_INDEX_LABELS, getLabel } from "@/lib/constants";
 
@@ -41,14 +38,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <>
-      <Header />
-      <MainContent
-        avgAntIndex={avgAntIndex}
-        marketSummary={marketSummary?.summary ?? undefined}
-      />
-      <Footer />
-      <Sidebar stocks={stocks ?? []} />
-    </>
+    <MainContent
+      avgAntIndex={avgAntIndex}
+      marketSummary={marketSummary?.summary ?? undefined}
+    />
   );
 }
