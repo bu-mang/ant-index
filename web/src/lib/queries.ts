@@ -68,6 +68,15 @@ export function useAntIndexHistory(code: string, period = "7d") {
   });
 }
 
+export function useStats(code: string) {
+  return useQuery({
+    queryKey: ["stats", code],
+    queryFn: () => api.getStats(code),
+    staleTime: STALE_TIME,
+    enabled: !!code,
+  });
+}
+
 export function useSummary(code: string) {
   return useQuery({
     queryKey: ["summary", code],

@@ -8,11 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { GaugeChart } from "@/components/charts/gauge-chart";
 import { TimeSeriesChart } from "@/components/charts/time-series-chart";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import {
   useStocks,
   useAntIndex,
   useAntIndexHistory,
   useSummary,
+  useStats,
 } from "@/lib/queries";
 
 export default function StockDetailPage() {
@@ -24,6 +26,7 @@ export default function StockDetailPage() {
   const { data: antHistory30d } = useAntIndexHistory(code, "30d");
   const { data: antHistory90d } = useAntIndexHistory(code, "90d");
   const { data: summary } = useSummary(code);
+  const { data: stats } = useStats(code);
   const { data: stocks } = useStocks();
 
   const stock = stocks?.find((s) => s.code === code);
@@ -97,6 +100,59 @@ export default function StockDetailPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* 통계 카드 */}
+        {stats && (
+          <div className="grid grid-cols-4 gap-3">
+            <Card>
+              <CardContent className="pt-4 pb-3 px-4">
+                <p className="text-xs text-muted-foreground mb-1">총 글 수</p>
+                <p className="text-xl font-bold">{stats.totalPosts.toLocaleString()}</p>
+                {stats.postChangeRate != null && (
+                  <div className="flex items-center gap-1 mt-1">
+                    {stats.postChangeRate > 0 ? (
+                      <TrendingUp className="size-3 text-[#fa342c]" />
+                    ) : stats.postChangeRate < 0 ? (
+                      <TrendingDown className="size-3 text-[#217cf9]" />
+                    ) : (
+                      <Minus className="size-3 text-muted-foreground" />
+                    )}
+                    <span
+                      className={`text-xs font-medium ${
+                        stats.postChangeRate > 0
+                          ? "text-[#fa342c]"
+                          : stats.postChangeRate < 0
+                            ? "text-[#217cf9]"
+                            : "text-muted-foreground"
+                      }`}
+                    >
+                      {stats.postChangeRate > 0 ? "+" : ""}
+                      {stats.postChangeRate}%
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4 pb-3 px-4">
+                <p className="text-xs text-muted-foreground mb-1">상승론자</p>
+                <p className="text-xl font-bold text-gazua">{stats.bullPercent}%</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4 pb-3 px-4">
+                <p className="text-xs text-muted-foreground mb-1">하락론자</p>
+                <p className="text-xl font-bold text-sb">{stats.bearPercent}%</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4 pb-3 px-4">
+                <p className="text-xs text-muted-foreground mb-1">중립</p>
+                <p className="text-xl font-bold text-muted-foreground">{stats.neutralPercent}%</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* 시계열 차트 */}
         <Card>

@@ -15,6 +15,7 @@ import { StocksService } from '../stocks/stocks.service';
 import { IndexCurrentDto } from './dto/index-current.dto';
 import { IndexHistoryDto, MarketHistoryDto } from './dto/index-history.dto';
 import { StockSummaryDto, MarketSummaryDto } from './dto/summary.dto';
+import { StockStatsDto } from './dto/stock-stats.dto';
 
 // 히스토리 조회 시 period 파라미터 → 일수 변환
 const PERIOD_DAYS: Record<string, number> = {
@@ -379,6 +380,75 @@ export class IndexService {
           totalPosts: Number(d.total_posts),
         };
       }),
+    };
+  }
+
+  /**
+   * 종목 통계 — 최근 24시간 감성 분포 + 전일 대비 글 증감률
+   */
+  async getStats(code: string): Promise<StockStatsDto> {
+    const stock = await this.stocksService.findByCode(code);
+    if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
+
+    const now = new Date();
+    const since24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const since48h = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+
+    // 최근 24시간 감성 분포
+    const [current] = await this.db
+      .select({
+        total: sql<string>`count(*)::text`,
+        bull: sql<string>`count(*) filter (where ${schema.posts.sentimentLabel} = 'BULL')::text`,
+        bear: sql<string>`count(*) filter (where ${schema.posts.sentimentLabel} = 'BEAR')::text`,
+        neutral: sql<string>`count(*) filter (where ${schema.posts.sentimentLabel} = 'NEUTRAL')::text`,
+      })
+      .from(schema.posts)
+      .where(
+        and(
+          eq(schema.posts.stockId, stock.id),
+          gte(schema.posts.crawledAt, since24h),
+          sql`${schema.posts.sentimentLabel} is not null`,
+        ),
+      );
+
+    // 전일(24~48시간 전) 글 수 — 증감률 계산용
+    const [prev] = await this.db
+      .select({
+        total: sql<string>`count(*)::text`,
+      })
+      .from(schema.posts)
+      .where(
+        and(
+          eq(schema.posts.stockId, stock.id),
+          gte(schema.posts.crawledAt, since48h),
+          sql`${schema.posts.crawledAt} < ${since24h}`,
+          sql`${schema.posts.sentimentLabel} is not null`,
+        ),
+      );
+
+    const total = Number(current?.total) || 0;
+    const bull = Number(current?.bull) || 0;
+    const bear = Number(current?.bear) || 0;
+    const neutral = Number(current?.neutral) || 0;
+    const prevTotal = Number(prev?.total) || 0;
+
+    const pct = (n: number) =>
+      total === 0 ? 0 : Math.round((n / total) * 100 * 10) / 10;
+
+    let postChangeRate: number | null = null;
+    if (prevTotal > 0) {
+      postChangeRate =
+        Math.round(((total - prevTotal) / prevTotal) * 100 * 10) / 10;
+    }
+
+    return {
+      code: stock.code,
+      name: stock.name,
+      totalPosts: total,
+      bullPercent: pct(bull),
+      bearPercent: pct(bear),
+      neutralPercent: pct(neutral),
+      postChangeRate,
     };
   }
 

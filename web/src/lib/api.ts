@@ -56,6 +56,16 @@ export interface MarketIndexHistory {
   data: HistoryDataPoint[];
 }
 
+export interface StockStats {
+  code: string;
+  name: string;
+  totalPosts: number;
+  bullPercent: number;
+  bearPercent: number;
+  neutralPercent: number;
+  postChangeRate: number | null;
+}
+
 export interface SummaryResult {
   code: string;
   name: string;
@@ -76,6 +86,8 @@ export const api = {
     fetchApi<IndexResult>(`/stocks/${code}/ant-index`),
   getAntIndexHistory: (code: string, period = '7d') =>
     fetchApi<IndexHistory>(`/stocks/${code}/ant-index/history?period=${period}`),
+  getStats: (code: string) =>
+    fetchApi<StockStats>(`/stocks/${code}/stats`),
   getSummary: (code: string) =>
     fetchApi<SummaryResult>(`/stocks/${code}/summary`),
   getMarketSummary: () =>

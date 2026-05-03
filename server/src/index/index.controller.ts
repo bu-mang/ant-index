@@ -12,6 +12,7 @@ import { IndexService } from './index.service';
 import { IndexCurrentDto } from './dto/index-current.dto';
 import { IndexHistoryDto, MarketHistoryDto } from './dto/index-history.dto';
 import { StockSummaryDto, MarketSummaryDto } from './dto/summary.dto';
+import { StockStatsDto } from './dto/stock-stats.dto';
 
 @ApiTags('지표')
 @Controller('stocks/:code')
@@ -85,6 +86,17 @@ export class IndexController {
     @Query('period') period?: string,
   ): Promise<IndexHistoryDto> {
     return this.indexService.getAntIndexHistory(code, period);
+  }
+
+  @Get('stats')
+  @ApiOperation({
+    summary: '종목 통계',
+    description: '최근 24시간 감성 분포 + 전일 대비 글 증감률',
+  })
+  @ApiParam({ name: 'code', example: '005930' })
+  @ApiResponse({ status: 200, type: StockStatsDto })
+  getStats(@Param('code') code: string): Promise<StockStatsDto> {
+    return this.indexService.getStats(code);
   }
 
   @Get('summary')
