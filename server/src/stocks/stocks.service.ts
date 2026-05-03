@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq, and, gte, sql, desc } from 'drizzle-orm';
 import * as schema from '../database/schema';
+import { StockResponseDto } from './dto/stock-response.dto';
 
 @Injectable()
 export class StocksService {
@@ -25,7 +26,7 @@ export class StocksService {
    *   changeRate: number | null,   // 등락률 (%), 시세 데이터 없으면 null
    * }>}
    */
-  async getActiveStocks() {
+  async getActiveStocks(): Promise<StockResponseDto[]> {
     const stockList = await this.db
       .select({
         id: schema.stocks.id,

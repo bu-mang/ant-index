@@ -12,6 +12,9 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq, and, gte, sql, desc } from 'drizzle-orm';
 import * as schema from '../database/schema';
 import { StocksService } from '../stocks/stocks.service';
+import { IndexCurrentDto } from './dto/index-current.dto';
+import { IndexHistoryDto, MarketHistoryDto } from './dto/index-history.dto';
+import { StockSummaryDto, MarketSummaryDto } from './dto/summary.dto';
 
 // 히스토리 조회 시 period 파라미터 → 일수 변환
 const PERIOD_DAYS: Record<string, number> = {
@@ -68,7 +71,7 @@ export class IndexService {
    * 반환 예시: { code: "005930", name: "삼성전자", indexType: "SB",
    *            value: 37.4, label: "평온", totalPosts: 49, calculatedAt: "2026-04-27T..." }
    */
-  async getSbIndex(code: string) {
+  async getSbIndex(code: string): Promise<IndexCurrentDto> {
     const stock = await this.stocksService.findByCode(code);
     if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
 
@@ -91,7 +94,7 @@ export class IndexService {
    * 반환 예시: { code: "005930", name: "삼성전자", indexType: "GAZUA",
    *            value: 17.57, label: "침체", totalPosts: 49, calculatedAt: "2026-04-27T..." }
    */
-  async getGazuaIndex(code: string) {
+  async getGazuaIndex(code: string): Promise<IndexCurrentDto> {
     const stock = await this.stocksService.findByCode(code);
     if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
 
@@ -114,7 +117,7 @@ export class IndexService {
    * 반환 예시: { code: "005930", name: "삼성전자", indexType: "SB", period: "7d",
    *            data: [{ date: "2026-04-27", value: 37.4, totalPosts: 49 }, ...] }
    */
-  async getSbHistory(code: string, period = '7d') {
+  async getSbHistory(code: string, period = '7d'): Promise<IndexHistoryDto> {
     const stock = await this.stocksService.findByCode(code);
     if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
 
@@ -127,7 +130,7 @@ export class IndexService {
    * 반환 예시: { code: "005930", name: "삼성전자", indexType: "GAZUA", period: "7d",
    *            data: [{ date: "2026-04-27", value: 17.57, totalPosts: 49 }, ...] }
    */
-  async getGazuaHistory(code: string, period = '7d') {
+  async getGazuaHistory(code: string, period = '7d'): Promise<IndexHistoryDto> {
     const stock = await this.stocksService.findByCode(code);
     if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
 
@@ -240,7 +243,7 @@ export class IndexService {
    * 통합 개미지표 현재값 — bullWeight / (bullWeight + bearWeight) * 100
    * 0 = 극돔황챠(극도의 공포), 100 = 극가즈아(극도의 탐욕)
    */
-  async getAntIndex(code: string) {
+  async getAntIndex(code: string): Promise<IndexCurrentDto> {
     const stock = await this.stocksService.findByCode(code);
     if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
 
@@ -260,7 +263,10 @@ export class IndexService {
   /**
    * 통합 개미지표 히스토리 — 일별 bull/(bull+bear)*100
    */
-  async getAntIndexHistory(code: string, period = '7d') {
+  async getAntIndexHistory(
+    code: string,
+    period = '7d',
+  ): Promise<IndexHistoryDto> {
     const stock = await this.stocksService.findByCode(code);
     if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
 
@@ -316,7 +322,7 @@ export class IndexService {
    * - 과거 날짜: 그 날 자정 (= 다음 날 00:00) → window = 전날 00:00 ~ 당일 00:00 = 그 날 하루
    * - 오늘: now() → window = 24시간 전 ~ 현재 (자정 직후에도 데이터 있음)
    */
-  async getMarketAntIndexHistory(period = '7d') {
+  async getMarketAntIndexHistory(period = '7d'): Promise<MarketHistoryDto> {
     const days = PERIOD_DAYS[period] ?? 7;
 
     const daily = await this.db.execute(sql`
@@ -381,7 +387,7 @@ export class IndexService {
    *
    * 반환 예시: { code: "005930", name: "삼성전자", summary: "비관론 소폭 우세, 관망 분위기" }
    */
-  async getSummary(code: string) {
+  async getSummary(code: string): Promise<StockSummaryDto> {
     const stock = await this.stocksService.findByCode(code);
     if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
 
@@ -398,7 +404,7 @@ export class IndexService {
    *
    * 반환 예시: { summary: "시장 전반 관망세, 뚜렷한 방향 없음", updatedAt: "2026-04-27T..." }
    */
-  async getMarketSummary() {
+  async getMarketSummary(): Promise<MarketSummaryDto> {
     const [row] = await this.db
       .select()
       .from(schema.marketSummary)
