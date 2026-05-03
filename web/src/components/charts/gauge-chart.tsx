@@ -303,10 +303,10 @@ export function GaugeChart({
           {totalPosts !== undefined && (
             <text
               x={80}
-              y={1090}
+              y={1100}
               textAnchor="start"
               className="fill-muted-foreground/50"
-              style={{ fontSize: "38px" }}
+              style={{ fontSize: "34px" }}
             >
               <tspan x={80}>
                 최근 24시간 · {totalPosts.toLocaleString()}개 글 기반 종토방

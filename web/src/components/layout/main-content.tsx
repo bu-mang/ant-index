@@ -15,6 +15,7 @@ import { TaegukIcon } from "@/components/icons/taeguk";
 // import { USFlagIcon } from "@/components/icons/us-flag";
 import { useMarketAntIndexHistory } from "@/lib/queries";
 import { ANT_INDEX_LABELS, getLabel } from "@/lib/constants";
+import { WalkingAnt } from "@/components/walking-ant";
 import { useMemo } from "react";
 
 interface MainContentProps {
@@ -83,14 +84,17 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
           </section>
         )}
 
-        {/* 디바이더 */}
-        <div
-          className="h-px w-full max-w-150 opacity-30"
-          style={{
-            background:
-              "linear-gradient(to right, var(--foreground) 0%, transparent 100%)",
-          }}
-        />
+        {/* 개미 + 디바이더 */}
+        <div>
+          <WalkingAnt value={avgAntIndex.value} />
+          <div
+            className="h-px w-full opacity-30"
+            style={{
+              background:
+                "linear-gradient(to right, var(--foreground) 0%, transparent 100%)",
+            }}
+          />
+        </div>
 
         {/* 탭 — 차트만 전환 */}
         <Tabs defaultValue="overview">
