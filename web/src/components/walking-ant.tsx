@@ -47,6 +47,7 @@ interface AntState {
   speech: string | null;
   nextSpeechAt: number;
   jumping: boolean;
+  speechIndex: number; // 대사 순환 인덱스
 }
 
 function initAnts(count: number): AntState[] {
@@ -59,6 +60,7 @@ function initAnts(count: number): AntState[] {
     speech: null,
     nextSpeechAt: Date.now() + 2000 + Math.random() * 5000,
     jumping: false,
+    speechIndex: Math.floor(Math.random() * 3), // 랜덤 시작 인덱스
   }));
 }
 
@@ -119,10 +121,12 @@ export function WalkingAnt({ value }: WalkingAntProps) {
           }
 
           // 말풍선
+          let { speechIndex } = ant;
           if (now >= nextSpeechAt) {
             if (speech === null) {
               const lines = speechLines.current;
-              speech = lines[Math.floor(Math.random() * lines.length)];
+              speech = lines[speechIndex % lines.length];
+              speechIndex = (speechIndex + 1) % lines.length;
               nextSpeechAt = now + 2000;
             } else {
               speech = null;
@@ -139,6 +143,7 @@ export function WalkingAnt({ value }: WalkingAntProps) {
             speech,
             nextSpeechAt,
             jumping,
+            speechIndex,
           };
         }),
       );
