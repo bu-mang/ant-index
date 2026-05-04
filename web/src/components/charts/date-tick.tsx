@@ -44,7 +44,7 @@ export function DateTick(
         <TooltipProvider delay={200}>
           <Tooltip>
             <TooltipTrigger>
-              <text
+              <span
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -72,7 +72,7 @@ export function DateTick(
                   <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
                   <line x1="12" y1="17" x2="12.01" y2="17" />
                 </svg>
-              </text>
+              </span>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="max-w-56 text-xs">
               타임라인에서의 &apos;오늘&apos;은 00:00AM부터 수집된 값으로, 아직

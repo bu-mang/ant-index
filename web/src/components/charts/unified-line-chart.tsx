@@ -152,6 +152,16 @@ export function UnifiedLineChart({ data }: UnifiedLineChartProps) {
               const dotColor = `color-mix(in srgb, var(--sb) ${100 - payload.value}%, var(--gazua))`;
               return (
                 <g key={index}>
+                  {isLast && (
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={r + 3}
+                      fill="none"
+                      stroke={dotColor}
+                      strokeWidth={2}
+                    />
+                  )}
                   <circle
                     cx={cx}
                     cy={cy}
