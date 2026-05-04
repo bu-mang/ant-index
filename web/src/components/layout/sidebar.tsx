@@ -20,7 +20,7 @@ export function Sidebar({ stocks }: SidebarProps) {
   return (
     <aside className="hidden lg:flex flex-col w-108 fixed right-0 top-0 bottom-0 border-l border-border bg-sidebar">
       <div className="shrink-0 border-b border-border">
-        <div className="h-14 flex items-end justify-between pb-3.5 px-6">
+        <div className="h-14 flex items-end justify-between pb-3.5 pl-6 pr-8">
           <h2
             className="text-base font-normal"
             style={{
@@ -49,8 +49,8 @@ export function Sidebar({ stocks }: SidebarProps) {
 
         <table className="w-full table-fixed text-sm h-10">
           <colgroup>
-            <col className="w-[45%]" />
-            <col className="w-[25%]" />
+            <col className="w-[50%]" />
+            <col className="w-[20%]" />
             <col className="w-[30%]" />
           </colgroup>
           <thead>

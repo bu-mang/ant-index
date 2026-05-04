@@ -64,6 +64,22 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
     });
   }, [antHistory30d, antHistory90d]);
 
+  const now = new Date();
+  const datePart = now
+    .toLocaleDateString("ko-KR", {
+      timeZone: "Asia/Seoul",
+      year: "2-digit",
+      month: "2-digit",
+      day: "2-digit",
+    })
+    .replace(/\. /g, ".")
+    .replace(/\.$/, "");
+  const dayOfWeek = now.toLocaleDateString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    weekday: "short",
+  });
+  const date = `${datePart} (${dayOfWeek})`;
+
   return (
     <main className="pt-14 lg:mr-108 min-h-screen">
       <div className="max-w-432 mx-auto px-12 py-6 space-y-6">
@@ -71,18 +87,7 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
         {marketSummary && (
           <section className="py-16 pb-8">
             <div className="flex flex-col items-start gap-1.5">
-              <Badge variant="default">
-                {new Date()
-                  .toLocaleDateString("ko-KR", {
-                    timeZone: "Asia/Seoul",
-                    year: "2-digit",
-                    month: "2-digit",
-                    day: "2-digit",
-                  })
-                  .replace(/\. /g, ".")
-                  .replace(/\.$/, "")}{" "}
-                개미 민심 현황
-              </Badge>
+              <Badge variant="default">{date} 개미 민심 현황</Badge>
               <p
                 className="text-5xl text-left font-normal max-w-150 leading-snug break-keep"
                 style={{
