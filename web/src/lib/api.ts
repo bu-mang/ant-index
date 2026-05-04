@@ -56,6 +56,33 @@ export interface MarketIndexHistory {
   data: HistoryDataPoint[];
 }
 
+export interface PriceDetail {
+  code: string;
+  name: string;
+  currentPrice: number | null;
+  changeRate: number | null;
+  volume: number | null;
+  marketCap: number | null;
+  per: number | null;
+  pbr: number | null;
+  dividendYield: number | null;
+  high52w: number | null;
+  low52w: number | null;
+}
+
+export interface HotCommentItem {
+  maskedContent: string;
+  sentimentLabel: 'BULL' | 'BEAR' | 'NEUTRAL';
+  likeBucket: string;
+  postedAt: string;
+}
+
+export interface HotCommentsResponse {
+  code: string;
+  name: string;
+  comments: HotCommentItem[];
+}
+
 export interface StockStats {
   code: string;
   name: string;
@@ -86,6 +113,10 @@ export const api = {
     fetchApi<IndexResult>(`/stocks/${code}/ant-index`),
   getAntIndexHistory: (code: string, period = '7d') =>
     fetchApi<IndexHistory>(`/stocks/${code}/ant-index/history?period=${period}`),
+  getPriceDetail: (code: string) =>
+    fetchApi<PriceDetail>(`/stocks/${code}/price`),
+  getHotComments: (code: string) =>
+    fetchApi<HotCommentsResponse>(`/stocks/${code}/hot-comments`),
   getStats: (code: string) =>
     fetchApi<StockStats>(`/stocks/${code}/stats`),
   getSummary: (code: string) =>

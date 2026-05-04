@@ -37,7 +37,18 @@ def price_all():
         try:
             price = crawl_price(stock.code)
             if price:
-                insert_price(stock.id, price["current_price"], price["change_rate"])
+                insert_price(
+                    stock.id,
+                    price["current_price"],
+                    price["change_rate"],
+                    volume=price.get("volume"),
+                    market_cap=price.get("market_cap"),
+                    per=price.get("per"),
+                    pbr=price.get("pbr"),
+                    dividend_yield=price.get("dividend_yield"),
+                    high_52w=price.get("high_52w"),
+                    low_52w=price.get("low_52w"),
+                )
                 print(f"  [{stock.name}] {price['current_price']:,}원 ({price['change_rate']:+.2f}%)")
                 success += 1
         except Exception as e:

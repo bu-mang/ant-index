@@ -93,14 +93,30 @@ def delete_old_posts(days=365):
         return result.rowcount
 
 
-def insert_price(stock_id, current_price, change_rate):
-    """시세 INSERT"""
+def insert_price(stock_id, current_price, change_rate, **extra):
+    """시세 INSERT (거래량, 시총, PER, PBR, 배당수익률, 52주 고/저 등 추가 필드 지원)"""
+    values = {
+        "stock_id": stock_id,
+        "current_price": current_price,
+        "change_rate": change_rate,
+    }
+    # 추가 필드 매핑 (None이 아닌 값만)
+    field_map = {
+        "volume": "volume",
+        "market_cap": "market_cap",
+        "per": "per",
+        "pbr": "pbr",
+        "dividend_yield": "dividend_yield",
+        "high_52w": "high_52w",
+        "low_52w": "low_52w",
+    }
+    for key, col in field_map.items():
+        val = extra.get(key)
+        if val is not None:
+            values[col] = val
+
     with engine.connect() as conn:
-        conn.execute(insert(stock_prices).values(
-            stock_id=stock_id,
-            current_price=current_price,
-            change_rate=change_rate,
-        ))
+        conn.execute(insert(stock_prices).values(**values))
         conn.commit()
 
 

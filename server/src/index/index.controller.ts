@@ -13,6 +13,8 @@ import { IndexCurrentDto } from './dto/index-current.dto';
 import { IndexHistoryDto, MarketHistoryDto } from './dto/index-history.dto';
 import { StockSummaryDto, MarketSummaryDto } from './dto/summary.dto';
 import { StockStatsDto } from './dto/stock-stats.dto';
+import { PriceDetailDto } from './dto/price-detail.dto';
+import { HotCommentsDto } from './dto/hot-comments.dto';
 
 @ApiTags('지표')
 @Controller('stocks/:code')
@@ -86,6 +88,33 @@ export class IndexController {
     @Query('period') period?: string,
   ): Promise<IndexHistoryDto> {
     return this.indexService.getAntIndexHistory(code, period);
+  }
+
+  @Get('price')
+  @ApiOperation({
+    summary: '종목 기본정보',
+    description:
+      '최신 시세 + 투자지표 (시총, PER, PBR, 배당수익률, 52주 고/저)',
+  })
+  @ApiParam({ name: 'code', example: '005930' })
+  @ApiResponse({ status: 200, type: PriceDetailDto })
+  getPriceDetail(@Param('code') code: string): Promise<PriceDetailDto> {
+    return this.indexService.getPriceDetail(code);
+  }
+
+  @Get('hot-comments')
+  @ApiOperation({
+    summary: '핫댓글',
+    description: '최근 24시간 좋아요 상위 글/댓글 (마스킹 처리)',
+  })
+  @ApiParam({ name: 'code', example: '005930' })
+  @ApiQuery({ name: 'limit', required: false, example: 10 })
+  @ApiResponse({ status: 200, type: HotCommentsDto })
+  getHotComments(
+    @Param('code') code: string,
+    @Query('limit') limit?: number,
+  ): Promise<HotCommentsDto> {
+    return this.indexService.getHotComments(code, limit ? +limit : undefined);
   }
 
   @Get('stats')

@@ -150,7 +150,7 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
                       className="max-w-64 text-xs flex flex-col"
                     >
                       <span className="break-keep leading-relaxed">
-                        복수의 종목토론방의 글들을 AI 머신러닝으로 감성분석하여
+                        복수의 종목토론방 글들을 AI 머신러닝으로 감성분석하여
                         긍정(가즈아) 지수·부정(ㅅㅂ) 지수를 산출하여 아래와 같이
                         계산합니다.
                       </span>

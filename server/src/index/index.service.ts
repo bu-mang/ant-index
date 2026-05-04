@@ -16,6 +16,9 @@ import { IndexCurrentDto } from './dto/index-current.dto';
 import { IndexHistoryDto, MarketHistoryDto } from './dto/index-history.dto';
 import { StockSummaryDto, MarketSummaryDto } from './dto/summary.dto';
 import { StockStatsDto } from './dto/stock-stats.dto';
+import { PriceDetailDto } from './dto/price-detail.dto';
+import { HotCommentsDto } from './dto/hot-comments.dto';
+import { maskContent, likeBucket } from './utils/mask-content';
 
 // 히스토리 조회 시 period 파라미터 → 일수 변환
 const PERIOD_DAYS: Record<string, number> = {
@@ -384,6 +387,30 @@ export class IndexService {
   }
 
   /**
+   * 종목 기본정보 — 최신 시세 + 투자지표 (시총, PER, PBR, 배당수익률, 52주 고/저 등)
+   */
+  async getPriceDetail(code: string): Promise<PriceDetailDto> {
+    const stock = await this.stocksService.findByCode(code);
+    if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
+
+    const price = await this.stocksService.getLatestPrice(stock.id);
+
+    return {
+      code: stock.code,
+      name: stock.name,
+      currentPrice: price?.currentPrice ?? null,
+      changeRate: price?.changeRate ? Number(price.changeRate) : null,
+      volume: (price?.volume as number | null) ?? null,
+      marketCap: (price?.marketCap as number | null) ?? null,
+      per: price?.per ? Number(price.per) : null,
+      pbr: price?.pbr ? Number(price.pbr) : null,
+      dividendYield: price?.dividendYield ? Number(price.dividendYield) : null,
+      high52w: (price?.high52w as number | null) ?? null,
+      low52w: (price?.low52w as number | null) ?? null,
+    };
+  }
+
+  /**
    * 종목 통계 — 최근 24시간 감성 분포 + 전일 대비 글 증감률
    */
   async getStats(code: string): Promise<StockStatsDto> {
@@ -474,6 +501,46 @@ export class IndexService {
    *
    * 반환 예시: { summary: "시장 전반 관망세, 뚜렷한 방향 없음", updatedAt: "2026-04-27T..." }
    */
+  /**
+   * 핫댓글 — 최근 24시간 좋아요 상위 글/댓글 (마스킹 처리)
+   */
+  async getHotComments(code: string, limit = 10): Promise<HotCommentsDto> {
+    const stock = await this.stocksService.findByCode(code);
+    if (!stock) throw new NotFoundException(`종목 ${code}을 찾을 수 없습니다`);
+
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const rows = await this.db
+      .select({
+        content: schema.posts.content,
+        sentimentLabel: schema.posts.sentimentLabel,
+        likeCount: schema.posts.likeCount,
+        postedAt: schema.posts.postedAt,
+      })
+      .from(schema.posts)
+      .where(
+        and(
+          eq(schema.posts.stockId, stock.id),
+          gte(schema.posts.crawledAt, since),
+          sql`${schema.posts.sentimentLabel} is not null`,
+          sql`${schema.posts.likeCount} > 0`,
+        ),
+      )
+      .orderBy(desc(schema.posts.likeCount))
+      .limit(limit);
+
+    return {
+      code: stock.code,
+      name: stock.name,
+      comments: rows.map((r) => ({
+        maskedContent: maskContent(r.content ?? ''),
+        sentimentLabel: r.sentimentLabel!,
+        likeBucket: likeBucket(r.likeCount),
+        postedAt: r.postedAt?.toISOString() ?? '',
+      })),
+    };
+  }
+
   async getMarketSummary(): Promise<MarketSummaryDto> {
     const [row] = await this.db
       .select()

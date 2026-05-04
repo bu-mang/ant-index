@@ -137,11 +137,18 @@ export class StocksService {
    *
    * 반환 예시: { currentPrice: 67300, changeRate: "-2.10" } | null
    */
-  private async getLatestPrice(stockId: number) {
+  async getLatestPrice(stockId: number) {
     const [row] = await this.db
       .select({
         currentPrice: schema.stockPrices.currentPrice,
         changeRate: schema.stockPrices.changeRate,
+        volume: schema.stockPrices.volume,
+        marketCap: schema.stockPrices.marketCap,
+        per: schema.stockPrices.per,
+        pbr: schema.stockPrices.pbr,
+        dividendYield: schema.stockPrices.dividendYield,
+        high52w: schema.stockPrices.high52w,
+        low52w: schema.stockPrices.low52w,
       })
       .from(schema.stockPrices)
       .where(eq(schema.stockPrices.stockId, stockId))

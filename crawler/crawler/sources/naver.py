@@ -75,8 +75,28 @@ def crawl_board(stock_code, pages=5):
     return all_posts
 
 
+def _parse_int(text):
+    """콤마 포함 숫자 문자열 → int (파싱 실패 시 None)"""
+    if not text:
+        return None
+    try:
+        return int(text.replace(",", ""))
+    except (ValueError, AttributeError):
+        return None
+
+
+def _parse_float(text):
+    """숫자 문자열 → float (파싱 실패 시 None)"""
+    if not text:
+        return None
+    try:
+        return float(text.replace(",", ""))
+    except (ValueError, AttributeError):
+        return None
+
+
 def crawl_price(stock_code, retries=1):
-    """네이버증권에서 현재가, 등락률 크롤링 (실패 시 1회 재시도)"""
+    """네이버증권에서 현재가, 등락률, 거래량, 시총, PER, PBR, 배당수익률, 52주 고/저 크롤링"""
     for attempt in range(1 + retries):
         try:
             url = f"{BASE_URL}/item/main.naver?code={stock_code}"
@@ -107,9 +127,87 @@ def crawl_price(stock_code, retries=1):
                             rate = -rate
                         change_rate = rate
 
+            # 거래량 — rate_info > no_info 테이블 첫 번째 tr, 세 번째 td의 .blind
+            volume = None
+            rate_info = soup.select_one("div.rate_info")
+            if rate_info:
+                no_info = rate_info.select_one("table.no_info")
+                if no_info:
+                    first_tr = no_info.select("tr")
+                    if first_tr:
+                        tds = first_tr[0].select("td")
+                        if len(tds) >= 3:
+                            vol_blind = tds[2].select_one(".blind")
+                            if vol_blind:
+                                volume = _parse_int(vol_blind.get_text(strip=True))
+
+            # tab_con1 투자정보 테이블에서 시총, PER, PBR, 배당수익률, 52주 고/저 추출
+            market_cap = None
+            per = None
+            pbr = None
+            dividend_yield = None
+            high_52w = None
+            low_52w = None
+
+            tab = soup.select_one("#tab_con1")
+            if tab:
+                for tr in tab.select("tr"):
+                    th = tr.select_one("th")
+                    td = tr.select_one("td")
+                    if not th or not td:
+                        continue
+                    th_text = th.get_text(strip=True)
+                    td_text = td.get_text(" ", strip=True)
+
+                    if th_text == "시가총액":
+                        # "1,312조 4,895 억원" → 억원 단위로 변환
+                        import re
+                        nums = re.findall(r"([\d,]+)\s*(조|억)", td_text)
+                        total_eok = 0
+                        for val, unit in nums:
+                            n = int(val.replace(",", ""))
+                            if unit == "조":
+                                total_eok += n * 10000
+                            else:
+                                total_eok += n
+                        if total_eok > 0:
+                            market_cap = total_eok  # 억원 단위
+
+                    elif "52주최고" in th_text:
+                        # "230,000 l 53,700"
+                        parts = td_text.split("l")
+                        if len(parts) >= 2:
+                            high_52w = _parse_int(parts[0].strip())
+                            low_52w = _parse_int(parts[1].strip())
+
+                    elif th_text.startswith("PER") and "추정" not in th_text:
+                        # "33.59 배 l 6,564 원"
+                        parts = td_text.split("배")
+                        if parts:
+                            per = _parse_float(parts[0].strip())
+
+                    elif th_text.startswith("PBR"):
+                        # "3.45 배 l 63,997 원"
+                        parts = td_text.split("배")
+                        if parts:
+                            pbr = _parse_float(parts[0].strip())
+
+                    elif th_text.startswith("배당수익률"):
+                        # "0.76 %"
+                        parts = td_text.split("%")
+                        if parts:
+                            dividend_yield = _parse_float(parts[0].strip())
+
             return {
                 "current_price": current_price,
                 "change_rate": change_rate,
+                "volume": volume,
+                "market_cap": market_cap,
+                "per": per,
+                "pbr": pbr,
+                "dividend_yield": dividend_yield,
+                "high_52w": high_52w,
+                "low_52w": low_52w,
             }
         except Exception:
             if attempt < retries:

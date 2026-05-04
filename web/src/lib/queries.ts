@@ -68,6 +68,24 @@ export function useAntIndexHistory(code: string, period = "7d") {
   });
 }
 
+export function usePriceDetail(code: string) {
+  return useQuery({
+    queryKey: ["price-detail", code],
+    queryFn: () => api.getPriceDetail(code),
+    staleTime: STALE_TIME,
+    enabled: !!code,
+  });
+}
+
+export function useHotComments(code: string) {
+  return useQuery({
+    queryKey: ["hot-comments", code],
+    queryFn: () => api.getHotComments(code),
+    staleTime: STALE_TIME,
+    enabled: !!code,
+  });
+}
+
 export function useStats(code: string) {
   return useQuery({
     queryKey: ["stats", code],
