@@ -15,6 +15,7 @@ import { TaegukIcon } from "@/components/icons/taeguk";
 // import { USFlagIcon } from "@/components/icons/us-flag";
 import { useMarketAntIndexHistory } from "@/lib/queries";
 import { ANT_INDEX_LABELS, getLabel } from "@/lib/constants";
+import { formatDateShort, todayKST } from "@/lib/utils";
 import { WalkingAnt } from "@/components/walking-ant";
 import { useMemo } from "react";
 
@@ -64,21 +65,7 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
     });
   }, [antHistory30d, antHistory90d]);
 
-  const now = new Date();
-  const datePart = now
-    .toLocaleDateString("ko-KR", {
-      timeZone: "Asia/Seoul",
-      year: "2-digit",
-      month: "2-digit",
-      day: "2-digit",
-    })
-    .replace(/\. /g, ".")
-    .replace(/\.$/, "");
-  const dayOfWeek = now.toLocaleDateString("ko-KR", {
-    timeZone: "Asia/Seoul",
-    weekday: "short",
-  });
-  const date = `${datePart} (${dayOfWeek})`;
+  const date = formatDateShort(todayKST());
 
   return (
     <main className="pt-14 lg:mr-108 min-h-screen">

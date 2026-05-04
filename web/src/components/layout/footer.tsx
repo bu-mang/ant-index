@@ -42,14 +42,14 @@ export function Footer() {
                 href="https://github.com/bu-mang/ant-index"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-muted-foreground/50 hover:text-foreground transition-colors"
+                className="group text-muted-foreground/50 hover:text-foreground transition-colors"
               >
                 <Image
                   src="/icons/github.svg"
                   alt="GitHub"
                   width={16}
                   height={16}
-                  className="size-4 dark:invert"
+                  className="size-4 opacity-30 group-hover:opacity-100 transition-opacity dark:invert"
                 />
               </a>
               <a

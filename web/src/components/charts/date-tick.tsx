@@ -6,15 +6,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
-
-/** "2026-05-05" → "05.05(월)" */
-export function formatDateWithDay(dateStr: string): string {
-  const [, m, d] = dateStr.split("-");
-  const day = DAY_NAMES[new Date(dateStr + "T00:00:00+09:00").getDay()];
-  return `${m}.${d}(${day})`;
-}
+import { formatDateShort } from "@/lib/utils";
 
 export function DateTick(
   props: Record<string, unknown> & { lastDate: string },
@@ -37,7 +29,7 @@ export function DateTick(
           fill="currentColor"
           className="text-muted-foreground"
         >
-          {formatDateWithDay(payload.value)}
+          {formatDateShort(payload.value)}
         </text>
       </g>
     );
@@ -46,7 +38,7 @@ export function DateTick(
   return (
     <g transform={`translate(${x},${y})`}>
       <text dy={8} textAnchor="middle" fontSize={12} fill="var(--accent)">
-        {formatDateWithDay(payload.value)}
+        {formatDateShort(payload.value)}
       </text>
       <foreignObject x={-40} y={10} width={80} height={22} overflow="visible">
         <TooltipProvider delay={200}>

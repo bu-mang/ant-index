@@ -2,6 +2,7 @@
 "use client";
 
 import { ANT_INDEX_LABELS } from "@/lib/constants";
+import { formatDateFull, todayKST } from "@/lib/utils";
 
 interface GaugeChartProps {
   value: number; // 0~100
@@ -309,8 +310,8 @@ export function GaugeChart({
               style={{ fontSize: "34px" }}
             >
               <tspan x={80}>
-                최근 24시간 · {totalPosts.toLocaleString()}개 글 기반 종토방
-                감성 분석
+                {formatDateFull(todayKST())} 최근 24시간 ·{" "}
+                {totalPosts.toLocaleString()}개 글 기반 종토방 감성 분석
               </tspan>
             </text>
           )}
