@@ -6,7 +6,20 @@
   - 분석기용: 감성분석 결과 기록 + 지수/한줄평 집계용 읽기·쓰기
 """
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import create_engine, MetaData, select, insert, update, delete, func, case
+from typing import Any, Optional
+
+from sqlalchemy import (
+    Row,
+    case,
+    create_engine,
+    delete,
+    func,
+    insert,
+    MetaData,
+    select,
+    update,
+)
+
 from crawler.config import DATABASE_URL
 
 engine = create_engine(DATABASE_URL)
@@ -27,13 +40,13 @@ index_snapshots = metadata.tables["index_snapshots"]
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def get_active_stocks():
+def get_active_stocks() -> list[Row[Any]]:
     """활성 종목 목록 조회"""
     with engine.connect() as conn:
         result = conn.execute(
             select(stocks).where(stocks.c.is_active == True)
         )
-        return result.fetchall()
+        return list(result.fetchall())
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -42,7 +55,16 @@ def get_active_stocks():
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def insert_post(stock_id, external_id, title, content, views, likes, dislikes, posted_at):
+def insert_post(
+    stock_id: int,
+    external_id: str,
+    title: Optional[str],
+    content: str,
+    views: int,
+    likes: int,
+    dislikes: int,
+    posted_at: Optional[datetime],
+) -> bool:
     """글 INSERT (중복이면 건너뜀). 삽입 성공 시 True 반환."""
     with engine.connect() as conn:
         # external_id로 중복 체크
@@ -69,9 +91,14 @@ def insert_post(stock_id, external_id, title, content, views, likes, dislikes, p
         return True
 
 
-def insert_price(stock_id, current_price, change_rate, **extra):
+def insert_price(
+    stock_id: int,
+    current_price: int,
+    change_rate: float,
+    **extra: Any,
+) -> None:
     """시세 INSERT (거래량, 시총, PER, PBR, 배당수익률, 52주 고/저 등 추가 필드 지원)"""
-    values = {
+    values: dict[str, Any] = {
         "stock_id": stock_id,
         "current_price": current_price,
         "change_rate": change_rate,
@@ -96,7 +123,7 @@ def insert_price(stock_id, current_price, change_rate, **extra):
         conn.commit()
 
 
-def delete_old_posts(days=365):
+def delete_old_posts(days: int = 365) -> int:
     """crawled_at 기준으로 days일 이전 글 삭제. 삭제된 행 수 반환."""
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     with engine.connect() as conn:
@@ -113,7 +140,7 @@ def delete_old_posts(days=365):
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def get_unanalyzed_posts(limit=50):
+def get_unanalyzed_posts(limit: int = 50) -> list[Row[Any]]:
     """감성분석 안 된 글 조회 (sentiment_label IS NULL)"""
     with engine.connect() as conn:
         result = conn.execute(
@@ -121,10 +148,10 @@ def get_unanalyzed_posts(limit=50):
             .where(posts.c.sentiment_label == None)
             .limit(limit)
         )
-        return result.fetchall()
+        return list(result.fetchall())
 
 
-def update_sentiment(post_id, label, reason):
+def update_sentiment(post_id: int, label: str, reason: str) -> None:
     """감성분석 결과 UPDATE"""
     # LLM 결과(상승론자/하락론자/중립) → DB enum(BULL/BEAR/NEUTRAL) 변환
     label_map = {"상승론자": "BULL", "하락론자": "BEAR", "중립": "NEUTRAL"}
@@ -143,7 +170,7 @@ def update_sentiment(post_id, label, reason):
         conn.commit()
 
 
-def get_sentiment_weights(stock_id, hours=24):
+def get_sentiment_weights(stock_id: int, hours: int = 24) -> Optional[Row[Any]]:
     """최근 hours시간 글의 좋아요 가중치 집계.
 
     Row(total_weight, bull_weight, bear_weight, total_posts) 반환.
@@ -170,7 +197,16 @@ def get_sentiment_weights(stock_id, hours=24):
         ).fetchone()
 
 
-def insert_snapshot(stock_id, index_type, index_value, raw_score, total_posts, period_start, period_end, period_type="DAILY"):
+def insert_snapshot(
+    stock_id: int,
+    index_type: str,
+    index_value: float,
+    raw_score: float,
+    total_posts: int,
+    period_start: datetime,
+    period_end: datetime,
+    period_type: str = "DAILY",
+) -> None:
     """지표 스냅샷 INSERT (시계열 보존용)"""
     with engine.connect() as conn:
         conn.execute(insert(index_snapshots).values(
@@ -186,7 +222,7 @@ def insert_snapshot(stock_id, index_type, index_value, raw_score, total_posts, p
         conn.commit()
 
 
-def update_summary(stock_id, summary):
+def update_summary(stock_id: int, summary: str) -> None:
     """종목 한줄평 업데이트 (stocks.summary 덮어쓰기)"""
     with engine.connect() as conn:
         conn.execute(
@@ -200,7 +236,7 @@ def update_summary(stock_id, summary):
         conn.commit()
 
 
-def insert_market_summary(summary):
+def insert_market_summary(summary: str) -> None:
     """전체 시장 한줄평 INSERT (append-only, market_summary 테이블에 시계열로 누적)"""
     market_summary = metadata.tables["market_summary"]
     with engine.connect() as conn:

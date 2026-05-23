@@ -3,6 +3,8 @@
 DB 쿼리는 전부 crawler.db 의 헬퍼를 통해서만 한다 (이 모듈은 비즈니스 로직 전담).
 """
 from datetime import datetime, timedelta, timezone
+from typing import Optional
+
 from crawler.db import (
     insert_snapshot,
     get_active_stocks,
@@ -30,21 +32,23 @@ PRESETS = [
 MARKET_PRESETS = PRESETS
 
 
-def _to_tier(value):
+def _to_tier(value: float) -> int:
     """0~100 값을 0~4 티어로 변환"""
     return min(int(value // 20), 4)
 
 
-def _preset_for(sb, gazua):
+def _preset_for(sb: float, gazua: float) -> str:
     return PRESETS[_to_tier(sb)][_to_tier(gazua)]
 
 
-def calculate_index(stock_id):
+def calculate_index(stock_id: int) -> tuple[float, float, int]:
     """최근 24시간 분석 결과로 ㅅㅂ/가즈아 지수 계산 → (sb, gazua, total_posts).
 
     가중치 합계 0(분석된 글 없음) 이면 (0, 0, 0) 반환.
     """
     row = get_sentiment_weights(stock_id, hours=24)
+    if row is None:
+        return 0.0, 0.0, 0
 
     total_weight = float(row.total_weight or 0)
     bull_weight = float(row.bull_weight or 0)
@@ -52,14 +56,14 @@ def calculate_index(stock_id):
     total_posts = int(row.total_posts or 0)
 
     if total_weight == 0:
-        return 0, 0, 0
+        return 0.0, 0.0, 0
 
     sb = round(bear_weight / total_weight * 100, 2)
     gazua = round(bull_weight / total_weight * 100, 2)
     return sb, gazua, total_posts
 
 
-def generate_summary(stock_id):
+def generate_summary(stock_id: int) -> Optional[str]:
     """종목 한줄평 생성 — ㅅㅂ/가즈아 지수 티어에 해당하는 프리셋 반환 (글 없으면 None)"""
     sb, gazua, total_posts = calculate_index(stock_id)
     if total_posts == 0:
@@ -67,7 +71,7 @@ def generate_summary(stock_id):
     return _preset_for(sb, gazua)
 
 
-def save_snapshots(stock_id):
+def save_snapshots(stock_id: int) -> None:
     """종목의 SB/GAZUA 스냅샷을 index_snapshots에 저장"""
     sb, gazua, total_posts = calculate_index(stock_id)
     if total_posts == 0:
@@ -81,7 +85,7 @@ def save_snapshots(stock_id):
     insert_snapshot(stock_id, "GAZUA", gazua, gazua, total_posts, period_start, period_end)
 
 
-def generate_market_summary():
+def generate_market_summary() -> Optional[str]:
     """전체 시장 한줄평 생성 — 종목별 지수 평균을 티어로 매핑한 프리셋 반환"""
     active = get_active_stocks()
     if not active:

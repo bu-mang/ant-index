@@ -10,6 +10,8 @@ SENTIMENT_PROVIDER 환경변수로 백엔드 선택:
 import json
 import logging
 import time
+from typing import Any
+
 import requests
 
 from crawler.config import (
@@ -29,7 +31,7 @@ log = logging.getLogger(__name__)
 _last_call = 0.0
 
 
-def _throttle(rpm):
+def _throttle(rpm: int) -> None:
     """분당 요청 수를 넘지 않도록 호출 간 최소 간격을 확보한다."""
     global _last_call
     if rpm <= 0:
@@ -41,7 +43,7 @@ def _throttle(rpm):
     _last_call = time.time()
 
 
-def _ask_gemini(prompt, temperature, retries=2):
+def _ask_gemini(prompt: str, temperature: float, retries: int = 2) -> dict[str, Any]:
     if not GEMINI_API_KEY:
         raise RuntimeError("GEMINI_API_KEY가 설정되지 않았습니다 (crawler/.env 확인)")
 
@@ -79,7 +81,7 @@ def _ask_gemini(prompt, temperature, retries=2):
     return json.loads(parts[0]["text"])
 
 
-def _ask_ollama(prompt, temperature):
+def _ask_ollama(prompt: str, temperature: float) -> dict[str, Any]:
     res = requests.post(
         f"{OLLAMA_URL}/api/generate",
         json={
@@ -95,7 +97,7 @@ def _ask_ollama(prompt, temperature):
     return json.loads(res.json()["response"])
 
 
-def complete_json(prompt, temperature=0.5):
+def complete_json(prompt: str, temperature: float = 0.5) -> dict[str, Any]:
     """프롬프트를 LLM에 보내고 JSON 응답을 dict로 파싱해 반환. 실패 시 {}."""
     try:
         if SENTIMENT_PROVIDER == "ollama":
