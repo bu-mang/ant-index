@@ -13,8 +13,8 @@
 루트 `Makefile` 이 자주 쓰는 명령을 다 묶어둔다 (`make help` 로 목록 확인).
 
 ```bash
-# 의존성 설치
-make install
+# 의존성 설치 (세 서비스 일괄: make install / crawler 만: make install-crawler)
+make install-crawler
 
 # 종목 30개 마스터 데이터 1회 시드
 make seed

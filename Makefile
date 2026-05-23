@@ -7,19 +7,30 @@
 VENV_PY := $(CURDIR)/crawler/venv/bin/python
 
 .PHONY: help \
-        install seed test \
+        install install-crawler install-server install-web \
+        seed test \
         crawl analyze price loop \
         up down logs ps \
         server web \
         migrate migrate-gen
 
 help: ## 사용 가능한 명령 목록 출력
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z][a-zA-Z_-]*:.*?## / {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z][a-zA-Z_-]*:.*?## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+# ─── 의존성 설치 ────────────────────────────────────────────────────────────
+
+install: install-crawler install-server install-web ## 세 서비스 의존성 일괄 설치 (최초 셋업)
+
+install-crawler: ## crawler 의존성 설치 (pip)
+	cd crawler && pip install -r requirements.txt
+
+install-server: ## server 의존성 설치 (npm)
+	cd server && npm install
+
+install-web: ## web 의존성 설치 (npm)
+	cd web && npm install
 
 # ─── 크롤러 ─────────────────────────────────────────────────────────────────
-
-install: ## 크롤러 의존성 설치 (requirements.txt 기준)
-	cd crawler && pip install -r requirements.txt
 
 seed: ## stocks 마스터 30종목 1회 시드
 	cd crawler && $(VENV_PY) seed.py

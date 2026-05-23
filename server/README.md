@@ -11,8 +11,8 @@
 ## Quick Start
 
 ```bash
-# 의존성 설치 (최초 1회)
-make install   # 또는: cd server && npm install
+# 의존성 설치 (세 서비스 일괄: make install / server 만: make install-server)
+make install-server
 
 # 개발 서버 (hot reload)
 make server    # 또는: cd server && npm run start:dev

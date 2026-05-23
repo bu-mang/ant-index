@@ -44,13 +44,19 @@ Next.js 대시보드 ← REST API ← NestJS (지표 계산)
 자주 쓰는 명령은 루트 `Makefile`에 다 묶여 있다 (`make help` 로 목록 확인).
 
 ```bash
+# 최초 셋업 — 세 서비스 의존성 일괄 설치
+make install            # = install-crawler + install-server + install-web
+# 또는 개별:
+make install-crawler    # pip install (crawler/requirements.txt)
+make install-server     # npm install (server/)
+make install-web        # npm install (web/)
+
 # DB + 도커 컨테이너
 make up           # docker compose up -d (db + crawler + analyzer)
 make down
 make logs         # 실시간 로그 팔로우
 
 # 크롤러 (로컬 venv 사용)
-make install      # 의존성 설치
 make seed         # stocks 30개 시드
 make crawl        # 1회 글 크롤링
 make analyze      # 1회 감성분석 + 한줄평

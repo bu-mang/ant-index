@@ -17,8 +17,8 @@ NestJS 서버([../server](../server))의 REST API 를 호출해 ㅅㅂ/가즈아
 ## Quick Start
 
 ```bash
-# 의존성 설치 (최초 1회)
-cd web && npm install
+# 의존성 설치 (세 서비스 일괄: make install / web 만: make install-web)
+make install-web
 
 # 개발 서버 (포트 3030)
 make web         # 또는: cd web && npm run dev
