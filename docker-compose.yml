@@ -18,6 +18,13 @@ services:
       - DATABASE_URL=postgresql://antindex:antindex2026@db:5432/antindex
     depends_on:
       - db
+    # 로그 파일이 무한히 자라거나 부패한 바이트가 영구히 막히는 것을 방지.
+    # 10MB 마다 rotate, 최근 3개 파일만 유지 → 최대 ~30MB.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   analyzer:
     build: ./crawler
@@ -32,6 +39,11 @@ services:
       - OLLAMA_URL=http://host.docker.internal:11434
     depends_on:
       - db
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   pgdata:
