@@ -1,6 +1,6 @@
 """SQLAlchemy DB 연결 (Drizzle이 만든 테이블을 reflection으로 읽음)"""
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import create_engine, MetaData, select, insert, update, delete
+from sqlalchemy import create_engine, MetaData, select, insert, update, delete, func, case
 from crawler.config import DATABASE_URL
 
 engine = create_engine(DATABASE_URL)
@@ -50,6 +50,33 @@ def insert_post(stock_id, external_id, title, content, views, likes, dislikes, p
         ))
         conn.commit()
         return True
+
+
+def get_sentiment_weights(stock_id, hours=24):
+    """최근 hours시간 글의 좋아요 가중치 집계.
+
+    Row(total_weight, bull_weight, bear_weight, total_posts) 반환.
+    가중치 공식: 1 + log(max(like_count, 0) + 1) — 좋아요 많을수록 영향력 ↑
+    sentiment_label 이 NULL 인 글(아직 분석 안 된 글)은 제외.
+    """
+    since = datetime.now(timezone.utc) - timedelta(hours=hours)
+    weight_expr = 1 + func.log(func.greatest(posts.c.like_count, 0) + 1)
+    with engine.connect() as conn:
+        return conn.execute(
+            select(
+                func.sum(weight_expr).label("total_weight"),
+                func.sum(
+                    case((posts.c.sentiment_label == "BULL", weight_expr), else_=0)
+                ).label("bull_weight"),
+                func.sum(
+                    case((posts.c.sentiment_label == "BEAR", weight_expr), else_=0)
+                ).label("bear_weight"),
+                func.count().label("total_posts"),
+            )
+            .where(posts.c.stock_id == stock_id)
+            .where(posts.c.crawled_at >= since)
+            .where(posts.c.sentiment_label.isnot(None))
+        ).fetchone()
 
 
 def get_unanalyzed_posts(limit=50):

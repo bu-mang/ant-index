@@ -1,7 +1,14 @@
-"""종목별/시장 한줄평 생성 — ㅅㅂ지수/가즈아지수를 5×5 티어로 매핑한 프리셋 사용 (AI 미사용)"""
+"""종목별/시장 한줄평 생성 — ㅅㅂ지수/가즈아지수를 5×5 티어로 매핑한 프리셋 사용 (AI 미사용)
+
+DB 쿼리는 전부 crawler.db 의 헬퍼를 통해서만 한다 (이 모듈은 비즈니스 로직 전담).
+"""
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import select, func, case
-from crawler.db import engine, posts, stocks, stock_prices, insert_snapshot
+from crawler.db import (
+    insert_snapshot,
+    get_active_stocks,
+    get_latest_price,
+    get_sentiment_weights,
+)
 
 # 한줄평 프리셋 — SB(공포) 5단계 × GAZUA(탐욕) 5단계 = 25개
 # PRESETS[sb_tier][gazua_tier] — 종목 한줄평·시장 한줄평 공용
@@ -34,36 +41,16 @@ def _preset_for(sb, gazua):
 
 
 def calculate_index(stock_id):
-    """최근 24시간 posts에서 ㅅㅂ/가즈아 지수 계산"""
-    since = datetime.now(timezone.utc) - timedelta(hours=24)
+    """최근 24시간 분석 결과로 ㅅㅂ/가즈아 지수 계산 → (sb, gazua, total_posts).
 
-    with engine.connect() as conn:
-        result = conn.execute(
-            select(
-                func.sum(1 + func.log(func.greatest(posts.c.like_count, 0) + 1)).label("total_weight"),
-                func.sum(
-                    case(
-                        (posts.c.sentiment_label == "BULL", 1 + func.log(func.greatest(posts.c.like_count, 0) + 1)),
-                        else_=0,
-                    )
-                ).label("bull_weight"),
-                func.sum(
-                    case(
-                        (posts.c.sentiment_label == "BEAR", 1 + func.log(func.greatest(posts.c.like_count, 0) + 1)),
-                        else_=0,
-                    )
-                ).label("bear_weight"),
-                func.count().label("total_posts"),
-            )
-            .where(posts.c.stock_id == stock_id)
-            .where(posts.c.crawled_at >= since)
-            .where(posts.c.sentiment_label.isnot(None))
-        ).fetchone()
+    가중치 합계 0(분석된 글 없음) 이면 (0, 0, 0) 반환.
+    """
+    row = get_sentiment_weights(stock_id, hours=24)
 
-    total_weight = float(result.total_weight or 0)
-    bull_weight = float(result.bull_weight or 0)
-    bear_weight = float(result.bear_weight or 0)
-    total_posts = int(result.total_posts or 0)
+    total_weight = float(row.total_weight or 0)
+    bull_weight = float(row.bull_weight or 0)
+    bear_weight = float(row.bear_weight or 0)
+    total_posts = int(row.total_posts or 0)
 
     if total_weight == 0:
         return 0, 0, 0
@@ -71,18 +58,6 @@ def calculate_index(stock_id):
     sb = round(bear_weight / total_weight * 100, 2)
     gazua = round(bull_weight / total_weight * 100, 2)
     return sb, gazua, total_posts
-
-
-def get_latest_price_for_stock(stock_id):
-    """종목 최신 시세 조회"""
-    with engine.connect() as conn:
-        result = conn.execute(
-            select(stock_prices.c.current_price, stock_prices.c.change_rate)
-            .where(stock_prices.c.stock_id == stock_id)
-            .order_by(stock_prices.c.updated_at.desc())
-            .limit(1)
-        ).fetchone()
-        return result
 
 
 def generate_summary(stock_id):
@@ -109,16 +84,11 @@ def save_snapshots(stock_id):
 
 def get_market_price_stats():
     """30종목 평균 등락률, 상승/하락/보합 수 계산"""
-    with engine.connect() as conn:
-        active = conn.execute(
-            select(stocks.c.id).where(stocks.c.is_active == True)
-        ).fetchall()
-
     up, down, flat = 0, 0, 0
     rates = []
 
-    for row in active:
-        price = get_latest_price_for_stock(row.id)
+    for stock in get_active_stocks():
+        price = get_latest_price(stock.id)
         if price and price.change_rate is not None:
             rate = float(price.change_rate)
             rates.append(rate)
@@ -135,19 +105,14 @@ def get_market_price_stats():
 
 def generate_market_summary():
     """전체 시장 한줄평 생성 — 종목별 지수 평균을 티어로 매핑한 프리셋 반환"""
-    with engine.connect() as conn:
-        active_ids = [
-            row.id for row in
-            conn.execute(select(stocks.c.id).where(stocks.c.is_active == True)).fetchall()
-        ]
-
-    if not active_ids:
+    active = get_active_stocks()
+    if not active:
         return None
 
     # 종목별 지수 계산 → 평균
     sb_total, gazua_total, count = 0, 0, 0
-    for stock_id in active_ids:
-        sb, gazua, total_posts = calculate_index(stock_id)
+    for stock in active:
+        sb, gazua, total_posts = calculate_index(stock.id)
         if total_posts > 0:
             sb_total += sb
             gazua_total += gazua
