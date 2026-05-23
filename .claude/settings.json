@@ -16,7 +16,8 @@
       "Bash(cat*)",
       "Bash(git commit -m ':*)",
       "WebFetch(domain:seed-design.io)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git commit -m ' *)"
     ],
     "deny": []
   }
