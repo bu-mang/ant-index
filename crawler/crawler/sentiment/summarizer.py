@@ -6,7 +6,6 @@ from datetime import datetime, timedelta, timezone
 from crawler.db import (
     insert_snapshot,
     get_active_stocks,
-    get_latest_price,
     get_sentiment_weights,
 )
 
@@ -80,27 +79,6 @@ def save_snapshots(stock_id):
 
     insert_snapshot(stock_id, "SB", sb, sb, total_posts, period_start, period_end)
     insert_snapshot(stock_id, "GAZUA", gazua, gazua, total_posts, period_start, period_end)
-
-
-def get_market_price_stats():
-    """30종목 평균 등락률, 상승/하락/보합 수 계산"""
-    up, down, flat = 0, 0, 0
-    rates = []
-
-    for stock in get_active_stocks():
-        price = get_latest_price(stock.id)
-        if price and price.change_rate is not None:
-            rate = float(price.change_rate)
-            rates.append(rate)
-            if rate > 0.01:
-                up += 1
-            elif rate < -0.01:
-                down += 1
-            else:
-                flat += 1
-
-    avg_rate = round(sum(rates) / len(rates), 2) if rates else 0
-    return avg_rate, up, down, flat
 
 
 def generate_market_summary():

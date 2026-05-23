@@ -170,18 +170,6 @@ def get_sentiment_weights(stock_id, hours=24):
         ).fetchone()
 
 
-def get_latest_price(stock_id):
-    """종목 최신 시세 조회 (한줄평/시장 통계용)"""
-    with engine.connect() as conn:
-        result = conn.execute(
-            select(stock_prices)
-            .where(stock_prices.c.stock_id == stock_id)
-            .order_by(stock_prices.c.updated_at.desc())
-            .limit(1)
-        ).fetchone()
-        return result
-
-
 def insert_snapshot(stock_id, index_type, index_value, raw_score, total_posts, period_start, period_end, period_type="DAILY"):
     """지표 스냅샷 INSERT (시계열 보존용)"""
     with engine.connect() as conn:
