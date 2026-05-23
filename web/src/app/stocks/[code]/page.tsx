@@ -99,7 +99,7 @@ export default function StockDetailPage() {
           >
             ← 대시보드
           </Link>
-          <Badge variant="secondary">{code}</Badge>
+          <Badge className="bg-foreground text-background">{code}</Badge>
           <span className="text-sm font-medium">{stockName}</span>
           {stock && stock.currentPrice != null && (
             <span className="text-sm font-medium ml-auto">
