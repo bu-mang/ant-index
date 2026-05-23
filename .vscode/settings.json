@@ -1,0 +1,9 @@
+{
+  // crawler 패키지는 crawler/venv 에 설치된 패키지를 사용한다.
+  // Pylance 가 dotenv/sqlalchemy 등 import 를 못 찾는다는 경고가 뜨면 이 경로가 비어 있거나 잘못된 경우다.
+  "python.defaultInterpreterPath": "${workspaceFolder}/crawler/venv/bin/python",
+
+  // import 가 `from crawler.xxx import ...` 형태라서, 패키지 루트인 ${workspaceFolder}/crawler 를
+  // 분석 경로에 추가해 줘야 Pylance 가 self-import 도 올바르게 해결한다.
+  "python.analysis.extraPaths": ["${workspaceFolder}/crawler"]
+}
