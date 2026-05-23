@@ -7,7 +7,8 @@ const MASK_CHAR = '█';
  *
  * 예: "이 종목 떡상 가능성 높다고 봅니다" → "██ 떡상 ██████"
  *
- * 키워드가 하나도 없으면 전체를 마스킹하여 반환한다.
+ * 키워드가 하나도 없으면 앞 20글자를 전체 마스킹으로 반환한다.
+ * 클라이언트는 █ 런(run)을 자체 처리(예: 블러 텍스트)할 수 있다.
  */
 export function maskContent(content: string): string {
   if (!content) return '';
@@ -33,8 +34,8 @@ export function maskContent(content: string): string {
   // 키워드 위치 기준으로 정렬
   matches.sort((a, b) => a.start - b.start);
 
-  // 노출 구간 계산: 키워드 앞뒤 1글자까지
-  const CONTEXT = 1;
+  // 노출 구간 계산: 키워드 앞뒤 5글자까지
+  const CONTEXT = 5;
   const visible: { start: number; end: number }[] = [];
   for (const m of matches) {
     const start = Math.max(0, m.start - CONTEXT);

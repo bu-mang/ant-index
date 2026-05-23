@@ -31,7 +31,11 @@
       "Bash(.venv/bin/python -c ' *)",
       "Bash(venv/bin/python -c ' *)",
       "Bash(venv/bin/python)",
-      "Bash(docker exec *)"
+      "Bash(docker exec *)",
+      "WebFetch(domain:ai.google.dev)",
+      "WebFetch(domain:api-docs.deepseek.com)",
+      "WebSearch",
+      "WebFetch(domain:www.aifreeapi.com)"
     ],
     "deny": []
   }
