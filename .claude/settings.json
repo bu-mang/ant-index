@@ -20,7 +20,9 @@
       "Bash(git commit -m ' *)",
       "Bash(./venv/bin/python -m py_compile crawler/db.py crawler/sentiment/summarizer.py)",
       "Bash(./venv/bin/python -m py_compile main.py crawler/jobs/__init__.py crawler/jobs/loop.py crawler/jobs/price.py crawler/jobs/crawl.py crawler/jobs/analyze.py)",
-      "Bash(./venv/bin/python main.py --help)"
+      "Bash(./venv/bin/python main.py --help)",
+      "Bash(./venv/bin/python -c \"import tomllib; data = tomllib.load\\(open\\('pyproject.toml', 'rb'\\)\\); print\\('✓ pyproject.toml 파싱 OK'\\); print\\('  project:', data['project']['name'], data['project']['version']\\); print\\('  deps:', data['project']['dependencies']\\)\")",
+      "Bash(make help *)"
     ],
     "deny": []
   }

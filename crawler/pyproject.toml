@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ant-index-crawler"
+version = "0.1.0"
+description = "개미지표 크롤러 — 한국 주식 커뮤니티 글/시세 수집 + 감성분석"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+# 의존성은 requirements.txt 와 동기화 유지 — Dockerfile 이 현재 requirements.txt 를 쓰기 때문.
+# 향후 Dockerfile 을 'pip install .' 로 전환하면 requirements.txt 는 제거 가능.
+dependencies = [
+    "requests",
+    "beautifulsoup4",
+    "sqlalchemy>=2.0",
+    "psycopg2-binary",
+    "python-dotenv",
+    "typer>=0.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Lint / format / type-check 도입 시 여기에 추가 (ruff, mypy 등)
+]
+
+[project.scripts]
+# `pip install .` 후 어디서나 `ant-crawler <command>` 로 실행 가능
+ant-crawler = "main:app"
+
+[tool.setuptools]
+# 패키지는 ./crawler 하위만 포함 (테스트·스크립트는 제외)
+packages = ["crawler", "crawler.jobs", "crawler.scrapers", "crawler.sentiment"]
+py-modules = ["main", "seed"]

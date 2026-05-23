@@ -41,17 +41,32 @@ Next.js 대시보드 ← REST API ← NestJS (지표 계산)
 
 ## 실행 방법
 
+자주 쓰는 명령은 루트 `Makefile`에 다 묶여 있다 (`make help` 로 목록 확인).
+
 ```bash
-# DB 실행
+# DB + 도커 컨테이너
+make up           # docker compose up -d (db + crawler + analyzer)
+make down
+make logs         # 실시간 로그 팔로우
+
+# 크롤러 (로컬 venv 사용)
+make install      # 의존성 설치
+make seed         # stocks 30개 시드
+make crawl        # 1회 글 크롤링
+make analyze      # 1회 감성분석 + 한줄평
+make loop         # 30분 주기 무한 반복
+
+# 서버 / 웹 / 마이그레이션
+make server
+make web
+make migrate-gen && make migrate
+```
+
+또는 명령을 풀어서 실행해도 동일:
+```bash
 docker compose up -d
-
-# 서버
 cd server && npm install && npm run start:dev
-
-# 크롤러
 cd crawler && pip install -r requirements.txt && python main.py
-
-# 마이그레이션 (스키마 변경 시)
 cd server && npx drizzle-kit generate && npx drizzle-kit migrate
 ```
 
