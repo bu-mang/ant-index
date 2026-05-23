@@ -24,6 +24,9 @@ services:
     container_name: antindex-analyzer
     restart: unless-stopped
     command: ["python", "main.py", "loop-analyze"]
+    # GEMINI_API_KEY 등 LLM 설정은 crawler/.env 에서 로드한다.
+    # env_file 내 DATABASE_URL(localhost) 은 아래 environment 가 덮어쓰므로 안전.
+    env_file: ./crawler/.env
     environment:
       - DATABASE_URL=postgresql://antindex:antindex2026@db:5432/antindex
       - OLLAMA_URL=http://host.docker.internal:11434
