@@ -17,7 +17,7 @@ import random
 import threading
 from datetime import datetime
 from crawler.db import get_active_stocks, insert_post, insert_price, get_unanalyzed_posts, update_sentiment, delete_old_posts, update_summary, insert_market_summary
-from crawler.sources.naver import crawl_board, crawl_post_detail, crawl_price
+from crawler.scrapers.naver import crawl_board, crawl_post_detail, crawl_price
 from crawler.sentiment.analyzer import analyze_posts_batch
 from crawler.sentiment.summarizer import generate_summary, generate_market_summary, save_snapshots
 

@@ -293,7 +293,7 @@ import requests
 from bs4 import BeautifulSoup
 
 # JS: import { something } from './utils'
-from sources.naver import NaverCrawler
+from scrapers.naver import NaverCrawler
 
 # JS: import * as path from 'path'
 import os

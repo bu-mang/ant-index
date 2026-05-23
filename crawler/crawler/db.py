@@ -2,7 +2,7 @@
 
 함수는 호출자에 따라 세 그룹으로 묶여 있다:
   - 공용:     Crawler · Analyzer 양쪽에서 호출
-  - 크롤러용: sources/naver 로부터 수집한 글·시세를 적재
+  - 크롤러용: scrapers/naver 로부터 수집한 글·시세를 적재
   - 분석기용: 감성분석 결과 기록 + 지수/한줄평 집계용 읽기·쓰기
 """
 from datetime import datetime, timedelta, timezone
@@ -38,7 +38,7 @@ def get_active_stocks():
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 크롤러용 API — 수집한 글/시세 적재 + 오래된 글 정리
-#   호출자: sources/naver, main.crawl_all, main.price_all, main.clean
+#   호출자: scrapers/naver, main.crawl_all, main.price_all, main.clean
 # ─────────────────────────────────────────────────────────────────────────────
 
 

@@ -59,7 +59,7 @@ cd server && npx drizzle-kit generate && npx drizzle-kit migrate
 
 - `server/src/database/schema.ts` — DB 스키마 정의 (5개 테이블)
 - `server/src/database/database.module.ts` — Drizzle Provider + NestJS DI 등록
-- `crawler/sources/naver.py` — 네이버증권 종목토론실 크롤러
+- `crawler/scrapers/naver.py` — 네이버증권 종목토론실 크롤러
 - `crawler/db.py` — SQLAlchemy 설정 (reflection 방식)
 - `crawler/sentiment/llm.py` — LLM 호출 추상화 (Gemini API ↔ Ollama, SENTIMENT_PROVIDER로 전환)
 - `crawler/sentiment/analyzer.py` — 감성분석 프롬프트 + 배치 호출
