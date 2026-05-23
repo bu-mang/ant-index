@@ -134,6 +134,21 @@ def delete_old_posts(days: int = 365) -> int:
         return result.rowcount
 
 
+def delete_old_prices(days: int = 7) -> int:
+    """updated_at 기준으로 days일 이전 시세 행 삭제. 삭제된 행 수 반환.
+
+    stock_prices 는 "최신 1행" 만 읽히므로 보존은 추후 분봉 차트 등 잠재 사용
+    대비 최소한만 (기본 7일).
+    """
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    with engine.connect() as conn:
+        result = conn.execute(
+            delete(stock_prices).where(stock_prices.c.updated_at < cutoff)
+        )
+        conn.commit()
+        return result.rowcount
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 분석기용 API — 감성 라벨링 + 지수 집계 + 한줄평/스냅샷 기록
 #   호출자: sentiment/analyzer, sentiment/summarizer, main.analyze_all

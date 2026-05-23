@@ -35,7 +35,7 @@ app = typer.Typer(
     add_completion=False,
 )
 
-PRICE_INTERVAL = 5 * 60  # 시세 루프 주기 (초)
+PRICE_INTERVAL = 2 * 60  # 시세 루프 주기 (초) — 한 사이클 ~45초, 75초 여유
 
 
 @app.callback(invoke_without_command=True)
