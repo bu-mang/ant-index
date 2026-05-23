@@ -18,7 +18,9 @@
       "WebFetch(domain:seed-design.io)",
       "Bash(git push:*)",
       "Bash(git commit -m ' *)",
-      "Bash(./venv/bin/python -m py_compile crawler/db.py crawler/sentiment/summarizer.py)"
+      "Bash(./venv/bin/python -m py_compile crawler/db.py crawler/sentiment/summarizer.py)",
+      "Bash(./venv/bin/python -m py_compile main.py crawler/jobs/__init__.py crawler/jobs/loop.py crawler/jobs/price.py crawler/jobs/crawl.py crawler/jobs/analyze.py)",
+      "Bash(./venv/bin/python main.py --help)"
     ],
     "deny": []
   }

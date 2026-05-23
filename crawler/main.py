@@ -1,240 +1,129 @@
-"""개미지표 크롤러 엔트리포인트
+"""개미지표 크롤러 엔트리포인트.
+
+CLI: typer 기반. 모든 비즈니스 로직은 crawler.jobs.* 에 있고,
+이 파일은 명령어 ↔ job 함수 매핑만 담당하는 얇은 디스패처다.
 
 사용법:
-  python main.py              # 크롤링 1회 + 분석 1회
-  python main.py crawl        # 크롤링만 1회 (글만, 시세 제외)
-  python main.py price        # 시세만 빠르게 1회
-  python main.py analyze      # 분석만 1회
-  python main.py clean        # 1년 지난 글 삭제 1회
+  python main.py                  # 크롤링 1회 + 분석 1회 (= once)
+  python main.py once             # 크롤링 1회 + 분석 1회
+  python main.py crawl            # 글 크롤링만 1회
+  python main.py price            # 시세만 빠르게 1회
+  python main.py analyze          # 분석만 1회 (한줄평까지)
+  python main.py clean            # 1년 지난 글 삭제 1회
   python main.py loop             # 크롤링+분석(30분) + 시세(5분) 동시 반복
   python main.py loop-crawl-price # 글 크롤링(30분) + 시세(5분) 동시 반복
-  python main.py loop-crawl       # 크롤링만 30분 주기 반복 (24시간마다 자동 clean)
-  python main.py loop-analyze # 분석만 30분 주기 반복 (분석 후 한줄평 자동 생성)
-  python main.py loop-price   # 시세만 5분 주기 반복
+  python main.py loop-crawl       # 크롤링만 30분 주기 반복
+  python main.py loop-analyze     # 분석만 30분 주기 반복
+  python main.py loop-price       # 시세만 5분 주기 반복
+
+도움말: python main.py --help
 """
-import logging
-import time
-import random
 import threading
-from datetime import datetime
-from crawler.db import get_active_stocks, insert_post, insert_price, get_unanalyzed_posts, update_sentiment, delete_old_posts, update_summary, insert_market_summary
+
+import typer
+
+from crawler.jobs.analyze import analyze_all
+from crawler.jobs.crawl import clean as run_clean
+from crawler.jobs.crawl import crawl_all
+from crawler.jobs.loop import run_loop
+from crawler.jobs.price import price_all
 from crawler.logging_config import setup_logging
-from crawler.scrapers.naver import crawl_board, crawl_post_detail, crawl_price
-from crawler.sentiment.analyzer import analyze_posts_batch
-from crawler.sentiment.summarizer import generate_summary, generate_market_summary, save_snapshots
 
-log = logging.getLogger(__name__)
+app = typer.Typer(
+    help="개미지표 크롤러 — 글/시세 수집 + 감성분석 + 지표 산출",
+    no_args_is_help=False,
+    add_completion=False,
+)
 
-LOOP_INTERVAL = 30 * 60  # 30분 (초)
-
-
-_last_clean = 0  # 마지막 clean 실행 시각
+PRICE_INTERVAL = 5 * 60  # 시세 루프 주기 (초)
 
 
-def price_all():
-    """전 종목 시세만 빠르게 크롤링 → stock_prices 테이블에 저장"""
-    stocks = get_active_stocks()
-    log.info("─── 시세 크롤링 (%d개 종목) ───", len(stocks))
+@app.callback(invoke_without_command=True)
+def _main(ctx: typer.Context) -> None:
+    """모든 명령 실행 전에 로깅을 초기화한다.
 
-    success = 0
-    for stock in stocks:
-        try:
-            price = crawl_price(stock.code)
-            if price:
-                insert_price(
-                    stock.id,
-                    price["current_price"],
-                    price["change_rate"],
-                    volume=price.get("volume"),
-                    market_cap=price.get("market_cap"),
-                    per=price.get("per"),
-                    pbr=price.get("pbr"),
-                    dividend_yield=price.get("dividend_yield"),
-                    high_52w=price.get("high_52w"),
-                    low_52w=price.get("low_52w"),
-                )
-                log.info("[%s] %s원 (%+.2f%%)", stock.name, f"{price['current_price']:,}", price["change_rate"])
-                success += 1
-        except Exception as e:
-            log.error("[%s] 시세 크롤링 실패: %s", stock.name, e)
-        time.sleep(random.uniform(0.3, 0.8))
-
-    log.info("시세 크롤링 완료 — %d/%d개 종목", success, len(stocks))
+    인자 없이 호출되면 (기본 동작) 'once' 명령을 실행한다 — 기존 호환성 유지.
+    """
+    setup_logging()
+    if ctx.invoked_subcommand is None:
+        crawl_all()
+        analyze_all()
 
 
-def crawl_all():
-    """전 종목 크롤링 → posts 테이블에 저장 (종목당 5페이지 ≈ 100개)"""
-    global _last_clean
-    if time.time() - _last_clean > 24 * 60 * 60:
-        clean()
-        _last_clean = time.time()
-
-    stocks = get_active_stocks()
-    log.info("─── 크롤링 시작 (%d개 종목) ───", len(stocks))
-
-    total_new = 0
-    for stock in stocks:
-        stock_id = stock.id
-        stock_code = stock.code
-        stock_name = stock.name
-
-        # 종토방 크롤링
-        log.info("[%s] 종토방 크롤링 중...", stock_name)
-        board_posts = crawl_board(stock_code)
-
-        new_count = 0
-        for post in board_posts:
-            detail = crawl_post_detail(stock_code, post["nid"])
-            if not detail:
-                continue
-
-            posted_at = None
-            try:
-                posted_at = datetime.strptime(post["date"], "%Y.%m.%d %H:%M")
-            except (ValueError, TypeError):
-                pass
-
-            inserted = insert_post(
-                stock_id=stock_id,
-                external_id=post["nid"],
-                title=post["title"],
-                content=detail["body"],
-                views=detail["views"],
-                likes=detail["likes"],
-                dislikes=detail["dislikes"],
-                posted_at=posted_at,
-            )
-            if inserted:
-                new_count += 1
-
-            time.sleep(random.uniform(0.5, 1.5))  # 요청 간 딜레이
-
-        total_new += new_count
-        log.info("[%s] → %d개 새 글 저장 (전체 %d개 중)", stock_name, new_count, len(board_posts))
-        time.sleep(random.uniform(1, 3))  # 종목 간 딜레이
-
-    log.info("크롤링 완료 — 총 %d개 새 글 저장", total_new)
+@app.command()
+def once() -> None:
+    """크롤링 1회 + 분석 1회."""
+    crawl_all()
+    analyze_all()
 
 
-def analyze_all():
-    """미분석 글 감성분석 → posts 테이블 업데이트 → 한줄평 생성"""
-    total_success = 0
-    batch_num = 0
-
-    while True:
-        unanalyzed = get_unanalyzed_posts(limit=20)
-        if not unanalyzed:
-            break
-
-        batch_num += 1
-        log.info("─── 감성분석 배치 #%d (%d개 글) ───", batch_num, len(unanalyzed))
-
-        batch_items = [{"title": p.title or "", "text": p.content[:200]} for p in unanalyzed]
-
-        # TODO: 종목별 현재가를 넣어야 하지만, 지금은 0으로 대체
-        results = analyze_posts_batch(batch_items, price=0)
-
-        for i, post in enumerate(unanalyzed):
-            data = results.get(str(i + 1), {})
-            label = data.get("result", "")
-            reason = data.get("reason", "")
-
-            if label:
-                update_sentiment(post.id, label, reason)
-                total_success += 1
-                log.info("[%s] %s — %s", label, post.title[:30], reason)
-
-    if total_success:
-        log.info("감성분석 완료 — 총 %d개 처리", total_success)
-    else:
-        log.info("감성분석할 글이 없습니다")
-
-    # 감성분석 끝나면 종목별 한줄평 생성
-    generate_summaries()
+@app.command()
+def crawl() -> None:
+    """글 크롤링만 1회."""
+    crawl_all()
 
 
-def generate_summaries():
-    """전 종목 한줄평 + 전체 시장 한줄평 생성"""
-    stocks = get_active_stocks()
-    log.info("─── 한줄평 생성 (%d개 종목) ───", len(stocks))
-
-    for stock in stocks:
-        try:
-            save_snapshots(stock.id)
-            summary = generate_summary(stock.id)
-            if summary:
-                update_summary(stock.id, summary)
-                log.info("[%s] %s", stock.name, summary)
-        except Exception as e:
-            log.error("[%s] 한줄평 실패: %s", stock.name, e)
-
-    # 전체 시장 한줄평
-    try:
-        market = generate_market_summary()
-        if market:
-            insert_market_summary(market)
-            log.info("[전체 시장] %s", market)
-    except Exception as e:
-        log.error("[전체 시장] 한줄평 실패: %s", e)
+@app.command()
+def price() -> None:
+    """시세만 1회."""
+    price_all()
 
 
-def clean():
-    """1년 지난 posts 삭제"""
-    log.info("─── 오래된 글 정리 ───")
-    deleted = delete_old_posts(days=365)
-    log.info("→ %d개 삭제 완료", deleted)
+@app.command()
+def analyze() -> None:
+    """미분석 글 감성분석 + 한줄평 생성 (1회)."""
+    analyze_all()
 
 
-def run_loop(task, interval=LOOP_INTERVAL):
-    """지정된 작업을 interval 간격으로 반복 실행"""
-    while True:
-        start = time.time()
-        try:
-            task()
-        except Exception as e:
-            log.exception("작업 중 예외 발생: %s", e)
+@app.command()
+def clean() -> None:
+    """1년 지난 글 삭제."""
+    run_clean()
 
-        elapsed = time.time() - start
-        wait = max(0, interval - elapsed)
-        if wait > 0:
-            log.info("다음 실행까지 %d분 %d초 대기...", int(wait // 60), int(wait % 60))
-            time.sleep(wait)
+
+@app.command()
+def loop() -> None:
+    """크롤링+분석(30분) + 시세(5분) 동시 반복."""
+    t = threading.Thread(
+        target=run_loop,
+        args=(price_all,),
+        kwargs={"interval": PRICE_INTERVAL},
+        daemon=True,
+    )
+    t.start()
+    run_loop(lambda: (crawl_all(), analyze_all()))
+
+
+@app.command(name="loop-crawl-price")
+def loop_crawl_price() -> None:
+    """글 크롤링(30분) + 시세(5분) 동시 반복."""
+    t = threading.Thread(
+        target=run_loop,
+        args=(price_all,),
+        kwargs={"interval": PRICE_INTERVAL},
+        daemon=True,
+    )
+    t.start()
+    run_loop(crawl_all)
+
+
+@app.command(name="loop-crawl")
+def loop_crawl() -> None:
+    """글 크롤링만 30분 주기 반복."""
+    run_loop(crawl_all)
+
+
+@app.command(name="loop-analyze")
+def loop_analyze() -> None:
+    """분석만 30분 주기 반복."""
+    run_loop(analyze_all)
+
+
+@app.command(name="loop-price")
+def loop_price() -> None:
+    """시세만 5분 주기 반복."""
+    run_loop(price_all, interval=PRICE_INTERVAL)
 
 
 if __name__ == "__main__":
-    import sys
-
-    setup_logging()
-
-    command = sys.argv[1] if len(sys.argv) > 1 else "once"
-
-    if command == "once":
-        crawl_all()
-        analyze_all()
-    elif command == "crawl":
-        crawl_all()
-    elif command == "price":
-        price_all()
-    elif command == "analyze":
-        analyze_all()
-    elif command == "clean":
-        clean()
-    elif command == "loop":
-        # 시세(5분)를 서브 쓰레드, 크롤링+분석(30분)을 메인 쓰레드에서 동시 실행
-        t = threading.Thread(target=run_loop, args=(price_all,), kwargs={"interval": 5 * 60}, daemon=True)
-        t.start()
-        run_loop(lambda: (crawl_all(), analyze_all()))
-    elif command == "loop-crawl-price":
-        # 시세(5분)를 서브 쓰레드, 글 크롤링(30분)을 메인 쓰레드에서 동시 실행
-        t = threading.Thread(target=run_loop, args=(price_all,), kwargs={"interval": 5 * 60}, daemon=True)
-        t.start()
-        run_loop(crawl_all)
-    elif command == "loop-crawl":
-        run_loop(crawl_all)
-    elif command == "loop-analyze":
-        run_loop(analyze_all)
-    elif command == "loop-price":
-        run_loop(price_all, interval=5 * 60)
-    else:
-        log.error("알 수 없는 명령: %s", command)
-        log.error("사용법: python main.py [once|crawl|price|analyze|clean|loop|loop-crawl|loop-analyze|loop-price]")
+    app()
