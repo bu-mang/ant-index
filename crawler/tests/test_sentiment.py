@@ -1,5 +1,5 @@
-"""Exaone 배치 감성분석 테스트"""
-from crawler.sentiment.analyzer import ask_ollama_batch
+"""배치 감성분석 테스트 (백엔드는 SENTIMENT_PROVIDER 설정 따름)"""
+from crawler.sentiment.analyzer import analyze_posts_batch
 
 TEST_DATA = [
     {
@@ -56,9 +56,9 @@ TEST_DATA = [
 
 
 if __name__ == "__main__":
-    print("=== Exaone 배치 감성 분석 테스트 ===\n")
+    print("=== 배치 감성 분석 테스트 ===\n")
 
-    results = ask_ollama_batch(TEST_DATA, 170000)
+    results = analyze_posts_batch(TEST_DATA, 170000)
 
     for i, item in enumerate(TEST_DATA):
         data = results.get(str(i + 1), {})
@@ -71,6 +71,6 @@ if __name__ == "__main__":
         ) else "✗"
 
         print(f"[{item['label']}] {item['title']}")
-        print(f"  → Exaone: {result} {match}")
+        print(f"  → LLM: {result} {match}")
         print(f"  → 이유: {reason}")
         print()

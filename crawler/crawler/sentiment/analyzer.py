@@ -1,7 +1,5 @@
-"""Ollama + Exaone LLM 기반 감성분석"""
-import requests
-import json
-from crawler.config import OLLAMA_URL, OLLAMA_MODEL
+"""LLM 기반 감성분석 (백엔드는 crawler.sentiment.llm 이 SENTIMENT_PROVIDER 따라 선택)"""
+from crawler.sentiment.llm import complete_json
 
 PROMPT_TEMPLATE = """너는 주식 커뮤니티 감성 분석기야. 글의 제목과 본문을 보고 작성자의 시장 심리를 판별해.
 
@@ -56,7 +54,7 @@ BATCH_PROMPT_TEMPLATE = """너는 주식 커뮤니티 감성 분석기야. 아�
 - 불안, 걱정, 한숨 톤은 중립이 아니라 하락론자야.
 
 비꼬기/풍자 판단법:
-- "고잘이야 ㅋㅋ", "한국인특징" → 매수자를 비웃는 것 = 하락론자
+- "고점이야 ㅋㅋ", "한국인특징" → 매수자를 비웃는 것 = 하락론자
 - "ㅋㅋ"와 함께 부정적 상황을 묘사하면 비꼬기 = 하락론자
 - "ㅋㅋ"와 함께 하락론자/숏충이를 깔보면 = 상승론자
 
@@ -70,34 +68,15 @@ BATCH_PROMPT_TEMPLATE = """너는 주식 커뮤니티 감성 분석기야. 아�
 result는 상승론자/하락론자/중립 중 하나만 사용해."""
 
 
-def ask_ollama(text, price):
-    """단일 글 감성분석"""
-    response = requests.post(f"{OLLAMA_URL}/api/generate", json={
-        "model": OLLAMA_MODEL,
-        "prompt": PROMPT_TEMPLATE.format(text=text, price=price),
-        "stream": False,
-        "format": "json",
-        "options": {
-            "temperature": 0.5,
-        }
-    })
-    return json.loads(response.json()["response"])
+def analyze_post(text, price):
+    """단일 글 감성분석 → {"result": ..., "reason": ...} (실패 시 {})"""
+    return complete_json(PROMPT_TEMPLATE.format(text=text, price=price))
 
 
-def ask_ollama_batch(items, price):
-    """여러 글 배치 감성분석"""
-    posts = "\n".join([f"{i+1}. {item['title']} {item['text']}" for i, item in enumerate(items)])
-    response = requests.post(f"{OLLAMA_URL}/api/generate", json={
-        "model": OLLAMA_MODEL,
-        "prompt": BATCH_PROMPT_TEMPLATE.format(posts=posts, price=price),
-        "stream": False,
-        "format": "json",
-        "options": {
-            "temperature": 0.5,
-        }
-    })
-    try:
-        return json.loads(response.json()["response"])
-    except (json.JSONDecodeError, KeyError):
-        print("  ⚠ JSON 파싱 실패, 이 배치 건너뜀")
-        return {}
+def analyze_posts_batch(items, price):
+    """여러 글 배치 감성분석 → {"1": {...}, "2": {...}, ...} (실패 시 {})"""
+    posts = "\n".join(f"{i+1}. {item['title']} {item['text']}" for i, item in enumerate(items))
+    result = complete_json(BATCH_PROMPT_TEMPLATE.format(posts=posts, price=price))
+    if not result:
+        print("  ⚠ 이 배치 건너뜀")
+    return result

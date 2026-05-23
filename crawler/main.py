@@ -18,7 +18,7 @@ import threading
 from datetime import datetime
 from crawler.db import get_active_stocks, insert_post, insert_price, get_unanalyzed_posts, update_sentiment, delete_old_posts, update_summary, insert_market_summary
 from crawler.sources.naver import crawl_board, crawl_post_detail, crawl_price
-from crawler.sentiment.analyzer import ask_ollama_batch
+from crawler.sentiment.analyzer import analyze_posts_batch
 from crawler.sentiment.summarizer import generate_summary, generate_market_summary, save_snapshots
 
 LOOP_INTERVAL = 30 * 60  # 30분 (초)
@@ -128,7 +128,7 @@ def analyze_all():
         batch_items = [{"title": p.title or "", "text": p.content[:200]} for p in unanalyzed]
 
         # TODO: 종목별 현재가를 넣어야 하지만, 지금은 0으로 대체
-        results = ask_ollama_batch(batch_items, price=0)
+        results = analyze_posts_batch(batch_items, price=0)
 
         for i, post in enumerate(unanalyzed):
             data = results.get(str(i + 1), {})
@@ -157,7 +157,7 @@ def generate_summaries():
     for stock in stocks:
         try:
             save_snapshots(stock.id)
-            summary = generate_summary(stock.id, stock.name, stock.code)
+            summary = generate_summary(stock.id)
             if summary:
                 update_summary(stock.id, summary)
                 print(f"  [{stock.name}] {summary}")

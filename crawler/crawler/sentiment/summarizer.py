@@ -1,47 +1,12 @@
-"""종목별/시장 한줄평 생성 — Ollama LLM으로 ㅅㅂ지수/가즈아지수 + 시세를 종합 요약"""
-import json
-import requests
+"""종목별/시장 한줄평 생성 — ㅅㅂ지수/가즈아지수를 5×5 티어로 매핑한 프리셋 사용 (AI 미사용)"""
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, func, case
-from crawler.config import OLLAMA_URL, OLLAMA_MODEL
 from crawler.db import engine, posts, stocks, stock_prices, insert_snapshot
-from crawler.sources.naver import crawl_kospi
 
-STOCK_SUMMARY_PROMPT = """너는 주식 시장 분위기 요약가야. 아래 지표를 보고 한줄평을 작성해.
-
-종목: {stock_name} ({stock_code})
-ㅅㅂ지수: {sb_index} ({sb_label}) — 높을수록 비관/공포
-가즈아지수: {gazua_index} ({gazua_label}) — 높을수록 낙관/탐욕
-현재가: {price_info}
-
-규칙:
-- 한국어, 반드시 10자 이내 (공백 포함)
-- 반말, 감성적, 뉴스체 금지
-- 수치·지표 이름 절대 언급 금지
-- 반드시 아래 단계에 맞는 톤으로 써라:
-
-ㅅㅂ지수 단계별 톤:
-- 극도의 평온 (0~20): 잠잠함, 무풍지대 → 예: "고요하다", "바람 한 점 없다"
-- 평온 (20~40): 약간 불만 있지만 잔잔 → 예: "잔잔하네", "좀 심심하다"
-- 보통 (40~60): 반반, 갈팡질팡 → 예: "갈피를 못 잡네", "반반이다"
-- 불안 (60~80): 걱정 많고 예민 → 예: "불안하다", "흔들리는 중"
-- 극도의 공포 (80~100): 패닉, 절망 → 예: "멘탈 나갔다", "아비규환"
-
-가즈아지수 단계별 톤:
-- 침체 (0~20): 관심 없음, 의욕 없음 → 예: "관심 없다", "다 떠났다"
-- 조용 (20~40): 소극적 관망 → 예: "지켜보는 중", "눈치 보는 중"
-- 보통 (40~60): 보통 → 예: "그냥저냥", "평범한 하루"
-- 흥분 (60~80): 매수세 활발 → 예: "신나는 중", "달린다"
-- 극도의 환희 (80~100): 폭발적 낙관 → 예: "축제 분위기", "불장이다"
-
-두 지표를 종합해서 한줄평을 작성해라.
-
-반드시 아래 JSON 형식으로만 답해:
-{{"summary": "한줄평 내용"}}"""
-
-# 시장 한줄평 프리셋 — SB(공포) 5단계 × GAZUA(탐욕) 5단계 = 25개
-# MARKET_PRESETS[sb_tier][gazua_tier]
-MARKET_PRESETS = [
+# 한줄평 프리셋 — SB(공포) 5단계 × GAZUA(탐욕) 5단계 = 25개
+# PRESETS[sb_tier][gazua_tier] — 종목 한줄평·시장 한줄평 공용
+# (종목별로 다른 문구를 쓰고 싶으면 STOCK_PRESETS 를 따로 만들어 generate_summary 에서 참조)
+PRESETS = [
     #              침체                    조용                    보통                   흥분                     매우환희
     # 매우평온
     ["그리고 아무도 없었다",   "종토방엔 풀만 자란다...",   "평화로운 하루",       "슬금슬금 올라오는데",     "쉿 조용히 올라가는 중"],
@@ -55,40 +20,17 @@ MARKET_PRESETS = [
     ["돔황챠!!!!",           "제발 살려줘",            "개미 떼죽음 현장",      "변동성이 미친 수준인데..", "극심한 변동성으로 롱숏 모두 선혈이 낭자"],
 ]
 
-MARKET_REPHRASE_PROMPT = """아래 문장의 의미와 길이를 유지하면서, 어미나 말투만 살짝 바꿔서 다시 써줘.
-
-원문: "{preset}"
-
-규칙:
-- 의미를 절대 바꾸지 마
-- 단어를 추가하거나 빼지 마
-- 어미, 종결 표현, 말투만 변주해 (예: "~다" → "~네", "~중" → "~중이다")
-- 반말 유지, 뉴스체 금지
-- 반드시 아래 JSON 형식으로만 답해:
-{{"summary": "변주된 문장"}}"""
-
-SB_LABELS = [
-    (20, "극도의 평온"),
-    (40, "평온"),
-    (60, "보통"),
-    (80, "불안"),
-    (100, "극도의 공포"),
-]
-
-GAZUA_LABELS = [
-    (20, "침체"),
-    (40, "조용"),
-    (60, "보통"),
-    (80, "흥분"),
-    (100, "극도의 환희"),
-]
+# 하위 호환 — 기존에 MARKET_PRESETS 를 import 하던 코드용 별칭
+MARKET_PRESETS = PRESETS
 
 
-def get_label(value, labels):
-    for max_val, label in labels:
-        if value <= max_val:
-            return label
-    return labels[-1][1]
+def _to_tier(value):
+    """0~100 값을 0~4 티어로 변환"""
+    return min(int(value // 20), 4)
+
+
+def _preset_for(sb, gazua):
+    return PRESETS[_to_tier(sb)][_to_tier(gazua)]
 
 
 def calculate_index(stock_id):
@@ -143,44 +85,12 @@ def get_latest_price_for_stock(stock_id):
         return result
 
 
-def call_ollama(prompt):
-    """Ollama에 프롬프트를 보내고 summary 텍스트를 반환"""
-    res = requests.post(f"{OLLAMA_URL}/api/generate", json={
-        "model": OLLAMA_MODEL,
-        "prompt": prompt,
-        "stream": False,
-        "format": "json",
-        "options": {"temperature": 0.5},
-    })
-    parsed = json.loads(res.json()["response"])
-    return parsed.get("summary")
-
-
-def generate_summary(stock_id, stock_name, stock_code):
-    """종목 한줄평 생성 — 감성지수 + 시세를 포함한 프롬프트로 Ollama 호출"""
+def generate_summary(stock_id):
+    """종목 한줄평 생성 — ㅅㅂ/가즈아 지수 티어에 해당하는 프리셋 반환 (글 없으면 None)"""
     sb, gazua, total_posts = calculate_index(stock_id)
     if total_posts == 0:
         return None
-
-    # 시세 정보
-    price_row = get_latest_price_for_stock(stock_id)
-    if price_row and price_row.current_price:
-        price_info = f"{price_row.current_price:,}원 ({float(price_row.change_rate):+.2f}%)"
-    else:
-        price_info = "시세 데이터 없음"
-
-    prompt = STOCK_SUMMARY_PROMPT.format(
-        stock_name=stock_name,
-        stock_code=stock_code,
-        sb_index=sb,
-        sb_label=get_label(sb, SB_LABELS),
-        gazua_index=gazua,
-        gazua_label=get_label(gazua, GAZUA_LABELS),
-        price_info=price_info,
-        total_posts=total_posts,
-    )
-
-    return call_ollama(prompt)
+    return _preset_for(sb, gazua)
 
 
 def save_snapshots(stock_id):
@@ -223,13 +133,8 @@ def get_market_price_stats():
     return avg_rate, up, down, flat
 
 
-def _to_tier(value):
-    """0~100 값을 0~4 티어로 변환"""
-    return min(int(value // 20), 4)
-
-
 def generate_market_summary():
-    """전체 시장 한줄평 생성 — 프리셋 기반 + LLM 어미 변주"""
+    """전체 시장 한줄평 생성 — 종목별 지수 평균을 티어로 매핑한 프리셋 반환"""
     with engine.connect() as conn:
         active_ids = [
             row.id for row in
@@ -253,8 +158,4 @@ def generate_market_summary():
 
     avg_sb = round(sb_total / count, 2)
     avg_gazua = round(gazua_total / count, 2)
-
-    # 프리셋 선택 (LLM 없이 프리셋 그대로 사용)
-    preset = MARKET_PRESETS[_to_tier(avg_sb)][_to_tier(avg_gazua)]
-
-    return preset
+    return _preset_for(avg_sb, avg_gazua)

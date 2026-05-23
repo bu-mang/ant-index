@@ -22,13 +22,13 @@ ant-index/
 | DB | PostgreSQL 16 (Docker, 포트 5433) |
 | 백엔드 | NestJS + Drizzle ORM |
 | 크롤러 | Python (requests + BS4 + Playwright) + SQLAlchemy Core |
-| 감성분석 | Ollama + Exaone 3.5 2.4B (로컬 LLM, 비용 $0) |
+| 감성분석 | Gemini 2.5 Flash-Lite API (무료 티어) — `SENTIMENT_PROVIDER=ollama`로 로컬 폴백 가능 |
 | 프론트엔드 | Next.js + shadcn/ui + Tailwind CSS (예정) |
 
 ## 데이터 흐름
 
 ```
-Python 크롤러 (cron) → 글 수집 → Exaone 감성 분류 → PostgreSQL
+Python 크롤러 (cron) → 글 수집 → Gemini API 감성 분류 → PostgreSQL
                                                         ↓
 Next.js 대시보드 ← REST API ← NestJS (지표 계산)
 ```
@@ -61,13 +61,15 @@ cd server && npx drizzle-kit generate && npx drizzle-kit migrate
 - `server/src/database/database.module.ts` — Drizzle Provider + NestJS DI 등록
 - `crawler/sources/naver.py` — 네이버증권 종목토론실 크롤러
 - `crawler/db.py` — SQLAlchemy 설정 (reflection 방식)
-- `crawler/test_sentiment.py` — Exaone 감성분석 테스트
+- `crawler/sentiment/llm.py` — LLM 호출 추상화 (Gemini API ↔ Ollama, SENTIMENT_PROVIDER로 전환)
+- `crawler/sentiment/analyzer.py` — 감성분석 프롬프트 + 배치 호출
+- `crawler/test_sentiment.py` — 배치 감성분석 테스트
 
 ## 현재 진행 상태
 
 Phase 1 (MVP) 진행 중. 상세 내역은 docs/IMPLEMENT.md 참조.
 
-- [x] 감성분석 방식 선정 (Exaone 3.5 2.4B)
+- [x] 감성분석 방식 선정 (Gemini 2.5 Flash-Lite API 무료 티어 — Exaone 로컬은 폴백으로 유지)
 - [x] 종목 30개 선정
 - [x] PostgreSQL + Docker Compose
 - [x] DB 스키마 정의 (Drizzle)
