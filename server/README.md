@@ -21,8 +21,8 @@ make server    # 또는: cd server && npm run start:dev
 cd server && npm run build && npm run start:prod
 ```
 
-서버 기본 포트는 `3000` (환경변수 `PORT` 로 override). Swagger UI 는
-[http://localhost:3000/docs](http://localhost:3000/docs).
+서버 기본 포트는 `3333` (환경변수 `PORT` 로 override). Swagger UI 는
+[http://localhost:3333/docs](http://localhost:3333/docs).
 
 ## 환경변수
 
@@ -30,7 +30,7 @@ cd server && npm run build && npm run start:prod
 
 ```env
 DATABASE_URL=postgresql://antindex:antindex2026@localhost:5433/antindex
-PORT=3000
+PORT=3333
 ```
 
 ## 디렉토리 구조

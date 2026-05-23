@@ -45,5 +45,42 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  server:
+    build: ./server
+    container_name: antindex-server
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://antindex:antindex2026@db:5432/antindex
+      - PORT=3333
+    ports:
+      - "3333:3333"
+    depends_on:
+      - db
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web:
+    build:
+      context: ./web
+      args:
+        # 브라우저가 호출할 API URL — NEXT_PUBLIC_* 는 빌드 타임 inline 이므로
+        # 프로덕션 배포 시 .env 또는 compose override 로 실제 도메인 주입.
+        # 기본값(http://localhost:3333/api) 은 로컬 dev compose 용.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3333/api}
+    container_name: antindex-web
+    restart: unless-stopped
+    ports:
+      - "3030:3030"
+    depends_on:
+      - server
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
   pgdata:

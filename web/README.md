@@ -30,14 +30,14 @@ cd web && npm run build && npm start
 cd web && npm run lint
 ```
 
-기본 포트 **3030** ([http://localhost:3030](http://localhost:3030)) — 백엔드(3000)와 분리.
+기본 포트 **3030** ([http://localhost:3030](http://localhost:3030)) — 백엔드(3333)와 분리.
 
 ## 환경변수
 
 `web/.env.local` 에 작성 (gitignore 됨):
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3333/api
 ```
 
 배포 환경에서는 실제 서버 도메인으로 교체.
@@ -113,7 +113,7 @@ web/
 │              │ (TanStack Query)                            │
 │              └─► api.getStocks(), api.getAntIndex(code)... │
 │                       │ (fetch)                            │
-│                       └─► /api/* (NestJS 서버, 포트 3000)  │
+│                       └─► /api/* (NestJS 서버, 포트 3333)  │
 │                              │                             │
 │                              └─► PostgreSQL                │
 └────────────────────────────────────────────────────────────┘

@@ -10,7 +10,7 @@ VENV_PY := $(CURDIR)/crawler/venv/bin/python
         install install-crawler install-server install-web \
         seed test \
         crawl analyze price loop \
-        up down logs ps \
+        up down build logs ps \
         server web \
         migrate migrate-gen
 
@@ -52,11 +52,14 @@ loop: ## 크롤링+분석(30분) + 시세(5분) 무한 반복
 
 # ─── Docker ─────────────────────────────────────────────────────────────────
 
-up: ## docker compose up -d (db + crawler + analyzer)
+up: ## docker compose up -d (db + crawler + analyzer + server + web 전부)
 	docker compose up -d
 
 down: ## docker compose down
 	docker compose down
+
+build: ## docker compose 이미지 전체 재빌드
+	docker compose build
 
 logs: ## docker compose logs -f (실시간 로그 팔로우)
 	docker compose logs -f
