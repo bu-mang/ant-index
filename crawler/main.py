@@ -12,14 +12,18 @@
   python main.py loop-analyze # 분석만 30분 주기 반복 (분석 후 한줄평 자동 생성)
   python main.py loop-price   # 시세만 5분 주기 반복
 """
+import logging
 import time
 import random
 import threading
 from datetime import datetime
 from crawler.db import get_active_stocks, insert_post, insert_price, get_unanalyzed_posts, update_sentiment, delete_old_posts, update_summary, insert_market_summary
+from crawler.logging_config import setup_logging
 from crawler.scrapers.naver import crawl_board, crawl_post_detail, crawl_price
 from crawler.sentiment.analyzer import analyze_posts_batch
 from crawler.sentiment.summarizer import generate_summary, generate_market_summary, save_snapshots
+
+log = logging.getLogger(__name__)
 
 LOOP_INTERVAL = 30 * 60  # 30분 (초)
 
@@ -30,7 +34,7 @@ _last_clean = 0  # 마지막 clean 실행 시각
 def price_all():
     """전 종목 시세만 빠르게 크롤링 → stock_prices 테이블에 저장"""
     stocks = get_active_stocks()
-    print(f"\n=== 시세 크롤링 ({len(stocks)}개 종목) [{datetime.now().strftime('%H:%M:%S')}] ===\n")
+    log.info("─── 시세 크롤링 (%d개 종목) ───", len(stocks))
 
     success = 0
     for stock in stocks:
@@ -49,13 +53,13 @@ def price_all():
                     high_52w=price.get("high_52w"),
                     low_52w=price.get("low_52w"),
                 )
-                print(f"  [{stock.name}] {price['current_price']:,}원 ({price['change_rate']:+.2f}%)")
+                log.info("[%s] %s원 (%+.2f%%)", stock.name, f"{price['current_price']:,}", price["change_rate"])
                 success += 1
         except Exception as e:
-            print(f"  [{stock.name}] 실패: {e}")
+            log.error("[%s] 시세 크롤링 실패: %s", stock.name, e)
         time.sleep(random.uniform(0.3, 0.8))
 
-    print(f"\n시세 크롤링 완료! {success}/{len(stocks)}개 종목\n")
+    log.info("시세 크롤링 완료 — %d/%d개 종목", success, len(stocks))
 
 
 def crawl_all():
@@ -66,7 +70,7 @@ def crawl_all():
         _last_clean = time.time()
 
     stocks = get_active_stocks()
-    print(f"\n=== 크롤링 시작 ({len(stocks)}개 종목) [{datetime.now().strftime('%H:%M:%S')}] ===\n")
+    log.info("─── 크롤링 시작 (%d개 종목) ───", len(stocks))
 
     total_new = 0
     for stock in stocks:
@@ -75,7 +79,7 @@ def crawl_all():
         stock_name = stock.name
 
         # 종토방 크롤링
-        print(f"[{stock_name}] 종토방 크롤링 중...")
+        log.info("[%s] 종토방 크롤링 중...", stock_name)
         board_posts = crawl_board(stock_code)
 
         new_count = 0
@@ -106,10 +110,10 @@ def crawl_all():
             time.sleep(random.uniform(0.5, 1.5))  # 요청 간 딜레이
 
         total_new += new_count
-        print(f"  → {new_count}개 새 글 저장 (전체 {len(board_posts)}개 중)")
+        log.info("[%s] → %d개 새 글 저장 (전체 %d개 중)", stock_name, new_count, len(board_posts))
         time.sleep(random.uniform(1, 3))  # 종목 간 딜레이
 
-    print(f"\n크롤링 완료! 총 {total_new}개 새 글 저장\n")
+    log.info("크롤링 완료 — 총 %d개 새 글 저장", total_new)
 
 
 def analyze_all():
@@ -123,7 +127,7 @@ def analyze_all():
             break
 
         batch_num += 1
-        print(f"\n=== 감성분석 배치 #{batch_num} ({len(unanalyzed)}개 글) [{datetime.now().strftime('%H:%M:%S')}] ===\n")
+        log.info("─── 감성분석 배치 #%d (%d개 글) ───", batch_num, len(unanalyzed))
 
         batch_items = [{"title": p.title or "", "text": p.content[:200]} for p in unanalyzed]
 
@@ -138,12 +142,12 @@ def analyze_all():
             if label:
                 update_sentiment(post.id, label, reason)
                 total_success += 1
-                print(f"  [{label}] {post.title[:30]} — {reason}")
+                log.info("[%s] %s — %s", label, post.title[:30], reason)
 
     if total_success:
-        print(f"\n감성분석 완료! 총 {total_success}개 처리\n")
+        log.info("감성분석 완료 — 총 %d개 처리", total_success)
     else:
-        print("감성분석할 글이 없습니다.")
+        log.info("감성분석할 글이 없습니다")
 
     # 감성분석 끝나면 종목별 한줄평 생성
     generate_summaries()
@@ -152,7 +156,7 @@ def analyze_all():
 def generate_summaries():
     """전 종목 한줄평 + 전체 시장 한줄평 생성"""
     stocks = get_active_stocks()
-    print(f"\n=== 한줄평 생성 ({len(stocks)}개 종목) [{datetime.now().strftime('%H:%M:%S')}] ===\n")
+    log.info("─── 한줄평 생성 (%d개 종목) ───", len(stocks))
 
     for stock in stocks:
         try:
@@ -160,25 +164,25 @@ def generate_summaries():
             summary = generate_summary(stock.id)
             if summary:
                 update_summary(stock.id, summary)
-                print(f"  [{stock.name}] {summary}")
+                log.info("[%s] %s", stock.name, summary)
         except Exception as e:
-            print(f"  [{stock.name}] 한줄평 실패: {e}")
+            log.error("[%s] 한줄평 실패: %s", stock.name, e)
 
     # 전체 시장 한줄평
     try:
         market = generate_market_summary()
         if market:
             insert_market_summary(market)
-            print(f"\n  [전체 시장] {market}")
+            log.info("[전체 시장] %s", market)
     except Exception as e:
-        print(f"\n  [전체 시장] 한줄평 실패: {e}")
+        log.error("[전체 시장] 한줄평 실패: %s", e)
 
 
 def clean():
     """1년 지난 posts 삭제"""
-    print(f"\n=== 오래된 글 정리 [{datetime.now().strftime('%H:%M:%S')}] ===\n")
+    log.info("─── 오래된 글 정리 ───")
     deleted = delete_old_posts(days=365)
-    print(f"  → {deleted}개 삭제 완료\n")
+    log.info("→ %d개 삭제 완료", deleted)
 
 
 def run_loop(task, interval=LOOP_INTERVAL):
@@ -188,17 +192,19 @@ def run_loop(task, interval=LOOP_INTERVAL):
         try:
             task()
         except Exception as e:
-            print(f"\n[에러] {e}\n")
+            log.exception("작업 중 예외 발생: %s", e)
 
         elapsed = time.time() - start
         wait = max(0, interval - elapsed)
         if wait > 0:
-            print(f"다음 실행까지 {int(wait // 60)}분 {int(wait % 60)}초 대기...")
+            log.info("다음 실행까지 %d분 %d초 대기...", int(wait // 60), int(wait % 60))
             time.sleep(wait)
 
 
 if __name__ == "__main__":
     import sys
+
+    setup_logging()
 
     command = sys.argv[1] if len(sys.argv) > 1 else "once"
 
@@ -230,5 +236,5 @@ if __name__ == "__main__":
     elif command == "loop-price":
         run_loop(price_all, interval=5 * 60)
     else:
-        print(f"알 수 없는 명령: {command}")
-        print("사용법: python main.py [once|crawl|price|analyze|clean|loop|loop-crawl|loop-analyze|loop-price]")
+        log.error("알 수 없는 명령: %s", command)
+        log.error("사용법: python main.py [once|crawl|price|analyze|clean|loop|loop-crawl|loop-analyze|loop-price]")

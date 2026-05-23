@@ -1,5 +1,8 @@
 """LLM 기반 감성분석 (백엔드는 crawler.sentiment.llm 이 SENTIMENT_PROVIDER 따라 선택)"""
+import logging
 from crawler.sentiment.llm import complete_json
+
+log = logging.getLogger(__name__)
 
 PROMPT_TEMPLATE = """너는 주식 커뮤니티 감성 분석기야. 글의 제목과 본문을 보고 작성자의 시장 심리를 판별해.
 
@@ -78,5 +81,5 @@ def analyze_posts_batch(items, price):
     posts = "\n".join(f"{i+1}. {item['title']} {item['text']}" for i, item in enumerate(items))
     result = complete_json(BATCH_PROMPT_TEMPLATE.format(posts=posts, price=price))
     if not result:
-        print("  ⚠ 이 배치 건너뜀")
+        log.warning("이 배치 건너뜀 (LLM 응답 없음)")
     return result

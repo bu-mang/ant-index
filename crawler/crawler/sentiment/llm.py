@@ -8,6 +8,7 @@ SENTIMENT_PROVIDER 환경변수로 백엔드 선택:
 호출부는 빈 dict를 "이 건 건너뜀"으로 처리하면 된다.
 """
 import json
+import logging
 import time
 import requests
 
@@ -21,6 +22,8 @@ from crawler.config import (
 )
 
 _GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+
+log = logging.getLogger(__name__)
 
 # 무료 티어 RPM 제한 대응 — 마지막 호출 시각 (LLM 호출은 단일 스레드에서만 일어남)
 _last_call = 0.0
@@ -59,7 +62,7 @@ def _ask_gemini(prompt, temperature, retries=2):
     # 레이트리밋(429) / 일시적 5xx → 잠깐 쉬었다 재시도
     if res.status_code in (429, 500, 503) and retries > 0:
         wait = 30
-        print(f"  ⚠ Gemini {res.status_code} — {wait}s 대기 후 재시도 (남은 {retries}회)")
+        log.warning("Gemini %d — %ds 대기 후 재시도 (남은 %d회)", res.status_code, wait, retries)
         time.sleep(wait)
         return _ask_gemini(prompt, temperature, retries - 1)
 
@@ -100,5 +103,5 @@ def complete_json(prompt, temperature=0.5):
         return _ask_gemini(prompt, temperature)
     except (requests.RequestException, ValueError, KeyError, IndexError) as e:
         # ValueError는 json.JSONDecodeError 포함
-        print(f"  ⚠ LLM 호출 실패 ({type(e).__name__}): {e}")
+        log.warning("LLM 호출 실패 (%s): %s", type(e).__name__, e)
         return {}

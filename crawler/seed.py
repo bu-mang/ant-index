@@ -1,6 +1,10 @@
 """stocks 테이블에 종목 30개 시드 데이터 삽입"""
+import logging
 from crawler.db import engine, stocks
+from crawler.logging_config import setup_logging
 from sqlalchemy import insert, select
+
+log = logging.getLogger(__name__)
 
 SEED_STOCKS = [
     {"code": "005930", "name": "삼성전자", "market": "KOSPI", "sector": "반도체"},
@@ -40,13 +44,14 @@ def seed():
     with engine.connect() as conn:
         existing = conn.execute(select(stocks)).fetchall()
         if existing:
-            print(f"이미 {len(existing)}개 종목이 존재합니다. 시드 건너뜀.")
+            log.info("이미 %d개 종목이 존재합니다. 시드 건너뜀.", len(existing))
             return
 
         conn.execute(insert(stocks), SEED_STOCKS)
         conn.commit()
-        print(f"종목 {len(SEED_STOCKS)}개 삽입 완료!")
+        log.info("종목 %d개 삽입 완료", len(SEED_STOCKS))
 
 
 if __name__ == "__main__":
+    setup_logging()
     seed()
