@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { GaugeChart } from "@/components/charts/gauge-chart";
 import { TimeSeriesChart } from "@/components/charts/time-series-chart";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -14,10 +13,15 @@ import { Camera, Construction, HelpCircle } from "lucide-react";
 import { TaegukIcon } from "@/components/icons/taeguk";
 // import { USFlagIcon } from "@/components/icons/us-flag";
 import { useMarketAntIndexHistory } from "@/lib/queries";
-import { ANT_INDEX_LABELS, getLabel } from "@/lib/constants";
+import {
+  ANT_INDEX_LABELS,
+  MARKET_GROUP_ANT_LABEL,
+  getLabel,
+  type MarketGroup,
+} from "@/lib/constants";
 import { formatDateShort, todayKST } from "@/lib/utils";
 import { WalkingAnt } from "@/components/walking-ant";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 interface MainContentProps {
   avgAntIndex: { value: number; label: string; totalPosts: number };
@@ -32,6 +36,9 @@ function daysAgoStr(n: number): string {
 }
 
 export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
+  const [market, setMarket] = useState<MarketGroup>("KR");
+  const antLabel = MARKET_GROUP_ANT_LABEL[market];
+
   const { data: antHistory7d } = useMarketAntIndexHistory("7d");
   const { data: antHistory30d } = useMarketAntIndexHistory("30d");
   const { data: antHistory90d } = useMarketAntIndexHistory("90d");
@@ -74,7 +81,14 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
         {marketSummary && (
           <section className="py-16 pb-8">
             <div className="flex flex-col items-start gap-1.5">
-              <Badge variant="default">{date} 개미 민심 현황</Badge>
+              <p
+                className="text-lg"
+                style={{
+                  fontFamily: '"Mbc1961", sans-serif',
+                }}
+              >
+                {date} {antLabel} 민심 현황
+              </p>
               <p
                 className="text-5xl text-left font-normal max-w-150 leading-snug break-keep"
                 style={{
@@ -104,9 +118,12 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* 시장 선택 칩 */}
-              <Tabs defaultValue="kr">
+              <Tabs
+                value={market}
+                onValueChange={(v) => setMarket(v as MarketGroup)}
+              >
                 <TabsList>
-                  <TabsTrigger value="kr">
+                  <TabsTrigger value="KR">
                     <TaegukIcon className="size-3" /> 국장
                   </TabsTrigger>
                   <TooltipProvider delay={200}>

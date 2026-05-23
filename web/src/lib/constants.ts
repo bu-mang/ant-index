@@ -1,3 +1,11 @@
+// UI 시장 그룹 — DB의 거래소 enum(KOSPI/KOSDAQ/NASDAQ/NYSE)을 국가 단위로 묶은 상위 그룹
+export type MarketGroup = "KR" | "US";
+
+export const MARKET_GROUP_ANT_LABEL: Record<MarketGroup, string> = {
+  KR: "동학개미",
+  US: "서학개미",
+};
+
 // 지표 레이블 — 프론트/서버 공통 SSOT
 
 export const SB_LABELS = [
