@@ -5,15 +5,15 @@ generate_summaries() 를 자동 호출해 종목·시장 한줄평과 시계열 
 """
 import logging
 
-from crawler.db import (
+from antindex.db import (
     get_active_stocks,
     get_unanalyzed_posts,
     insert_market_summary,
     update_sentiment,
     update_summary,
 )
-from crawler.sentiment.analyzer import analyze_posts_batch
-from crawler.sentiment.summarizer import (
+from antindex.sentiment.analyzer import analyze_posts_batch
+from antindex.sentiment.summarizer import (
     generate_market_summary,
     generate_summary,
     save_snapshots,

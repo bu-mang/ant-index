@@ -3,8 +3,8 @@ import logging
 import random
 import time
 
-from crawler.db import get_active_stocks, insert_price
-from crawler.scrapers.naver import crawl_price
+from antindex.db import get_active_stocks, insert_price
+from antindex.scrapers.naver import crawl_price
 
 log = logging.getLogger(__name__)
 

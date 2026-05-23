@@ -1,5 +1,5 @@
 """배치 감성분석 테스트 (백엔드는 SENTIMENT_PROVIDER 설정 따름)"""
-from crawler.sentiment.analyzer import analyze_posts_batch
+from antindex.sentiment.analyzer import analyze_posts_batch
 
 TEST_DATA = [
     {

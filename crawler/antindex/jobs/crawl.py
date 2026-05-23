@@ -7,8 +7,8 @@ import random
 import time
 from datetime import datetime
 
-from crawler.db import delete_old_posts, get_active_stocks, insert_post
-from crawler.scrapers.naver import crawl_board, crawl_post_detail
+from antindex.db import delete_old_posts, get_active_stocks, insert_post
+from antindex.scrapers.naver import crawl_board, crawl_post_detail
 
 log = logging.getLogger(__name__)
 

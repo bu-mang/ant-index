@@ -1,7 +1,7 @@
 """stocks 테이블에 종목 30개 시드 데이터 삽입"""
 import logging
-from crawler.db import engine, stocks
-from crawler.logging_config import setup_logging
+from antindex.db import engine, stocks
+from antindex.logging_config import setup_logging
 from sqlalchemy import insert, select
 
 log = logging.getLogger(__name__)

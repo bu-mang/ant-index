@@ -20,7 +20,7 @@ from sqlalchemy import (
     update,
 )
 
-from crawler.config import DATABASE_URL
+from antindex.config import DATABASE_URL
 
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()

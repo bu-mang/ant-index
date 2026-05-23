@@ -14,7 +14,7 @@ from typing import Any
 
 import requests
 
-from crawler.config import (
+from antindex.config import (
     SENTIMENT_PROVIDER,
     GEMINI_API_KEY,
     GEMINI_MODEL,

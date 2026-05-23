@@ -5,7 +5,7 @@ DB 쿼리는 전부 crawler.db 의 헬퍼를 통해서만 한다 (이 모듈은 
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from crawler.db import (
+from antindex.db import (
     insert_snapshot,
     get_active_stocks,
     get_sentiment_weights,

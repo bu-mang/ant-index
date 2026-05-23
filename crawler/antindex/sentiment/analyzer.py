@@ -2,7 +2,7 @@
 import logging
 from typing import Any
 
-from crawler.sentiment.llm import complete_json
+from antindex.sentiment.llm import complete_json
 
 log = logging.getLogger(__name__)
 

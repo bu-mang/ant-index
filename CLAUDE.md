@@ -75,12 +75,12 @@ cd server && npx drizzle-kit generate && npx drizzle-kit migrate
 - `server/src/database/schema.ts` — DB 스키마 정의 (5개 테이블)
 - `server/src/database/database.module.ts` — Drizzle Provider + NestJS DI 등록
 - `crawler/main.py` — typer 기반 CLI 디스패처 (얇음, 비즈니스 로직 없음)
-- `crawler/crawler/jobs/{crawl,analyze,price,loop}.py` — 작업 단위별 진입점
-- `crawler/crawler/scrapers/naver.py` — 네이버증권 종목토론실 크롤러
-- `crawler/crawler/db.py` — SQLAlchemy 설정 (reflection 방식)
-- `crawler/crawler/sentiment/llm.py` — LLM 호출 추상화 (Gemini API ↔ Ollama, SENTIMENT_PROVIDER로 전환)
-- `crawler/crawler/sentiment/analyzer.py` — 감성분석 프롬프트 + 배치 호출
-- `crawler/crawler/logging_config.py` — 중앙 logging 설정 (엔트리포인트에서 setup_logging() 호출)
+- `crawler/antindex/jobs/{crawl,analyze,price,loop}.py` — 작업 단위별 진입점
+- `crawler/antindex/scrapers/naver.py` — 네이버증권 종목토론실 크롤러
+- `crawler/antindex/db.py` — SQLAlchemy 설정 (reflection 방식)
+- `crawler/antindex/sentiment/llm.py` — LLM 호출 추상화 (Gemini API ↔ Ollama, SENTIMENT_PROVIDER로 전환)
+- `crawler/antindex/sentiment/analyzer.py` — 감성분석 프롬프트 + 배치 호출
+- `crawler/antindex/logging_config.py` — 중앙 logging 설정 (엔트리포인트에서 setup_logging() 호출)
 - `crawler/tests/test_sentiment.py` — 배치 감성분석 테스트
 
 ## 현재 진행 상태

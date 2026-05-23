@@ -22,12 +22,12 @@ import threading
 
 import typer
 
-from crawler.jobs.analyze import analyze_all
-from crawler.jobs.crawl import clean as run_clean
-from crawler.jobs.crawl import crawl_all
-from crawler.jobs.loop import run_loop
-from crawler.jobs.price import price_all
-from crawler.logging_config import setup_logging
+from antindex.jobs.analyze import analyze_all
+from antindex.jobs.crawl import clean as run_clean
+from antindex.jobs.crawl import crawl_all
+from antindex.jobs.loop import run_loop
+from antindex.jobs.price import price_all
+from antindex.logging_config import setup_logging
 
 app = typer.Typer(
     help="개미지표 크롤러 — 글/시세 수집 + 감성분석 + 지표 산출",
