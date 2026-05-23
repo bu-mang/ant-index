@@ -1,7 +1,6 @@
 """네이버증권 종목토론실 크롤러"""
 import requests
 import random
-import json
 import time
 from bs4 import BeautifulSoup
 
@@ -244,32 +243,36 @@ def crawl_kospi():
 
 
 def crawl_post_detail(stock_code, nid):
-    """글 상세 페이지에서 본문 텍스트를 가져옴"""
-    iframe_url = f"https://m.stock.naver.com/pc/domestic/stock/{stock_code}/discussion/{nid}"
-    response = requests.get(iframe_url, headers=get_headers())
+    """글 상세 페이지에서 본문 텍스트를 가져옴.
+
+    네이버가 종토방 상세 페이지를 SSR → CSR 로 전환한 이후로 HTML 안에 본문이
+    박혀 있지 않아, 클라이언트가 호출하는 front-api 엔드포인트를 직접 호출한다.
+    """
+    api_url = "https://m.stock.naver.com/front-api/discussion/detail"
+    headers = get_headers()
+    headers["Accept"] = "application/json, text/plain, */*"
+    headers["Referer"] = (
+        f"https://m.stock.naver.com/pc/domestic/stock/{stock_code}/discussion/{nid}"
+    )
+
+    response = requests.get(api_url, headers=headers, params={"id": nid}, timeout=10)
     response.raise_for_status()
 
-    soup = BeautifulSoup(response.text, "html.parser")
-    next_data = soup.find("script", id="__NEXT_DATA__")
-    if not next_data:
+    data = response.json()
+    if not data.get("isSuccess"):
         return None
 
-    data = json.loads(next_data.string)
-    queries = data["props"]["pageProps"]["dehydratedState"]["queries"]
+    result = data.get("result") or {}
+    content_html = result.get("contentHtml")
+    if not content_html:
+        return None
 
-    for query in queries:
-        result = query.get("state", {}).get("data", {}).get("result", {})
-        if isinstance(result, dict) and "contentHtml" in result:
-            if not result["contentHtml"]:
-                return None
-            content_soup = BeautifulSoup(result["contentHtml"], "html.parser")
-            return {
-                "title": result.get("title", ""),
-                "body": content_soup.get_text(strip=True),
-                "views": result.get("viewCount", 0),
-                "likes": result.get("recommendCount", 0),
-                "dislikes": result.get("notRecommendCount", 0),
-                "date": result.get("writtenAt", ""),
-            }
-
-    return None
+    content_soup = BeautifulSoup(content_html, "html.parser")
+    return {
+        "title": result.get("title", ""),
+        "body": content_soup.get_text(strip=True),
+        "views": result.get("viewCount", 0),
+        "likes": result.get("recommendCount", 0),
+        "dislikes": result.get("notRecommendCount", 0),
+        "date": result.get("writtenAt", ""),
+    }

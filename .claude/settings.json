@@ -23,7 +23,15 @@
       "Bash(./venv/bin/python main.py --help)",
       "Bash(./venv/bin/python -c \"import tomllib; data = tomllib.load\\(open\\('pyproject.toml', 'rb'\\)\\); print\\('✓ pyproject.toml 파싱 OK'\\); print\\('  project:', data['project']['name'], data['project']['version']\\); print\\('  deps:', data['project']['dependencies']\\)\")",
       "Bash(make help *)",
-      "Bash(./venv/bin/python -c ' *)"
+      "Bash(./venv/bin/python -c ' *)",
+      "Bash(npx tsc *)",
+      "Bash(npx eslint *)",
+      "Bash(echo \"---exit $?\")",
+      "Bash(docker exec antindex-db psql -U antindex -d antindex -c ' *)",
+      "Bash(.venv/bin/python -c ' *)",
+      "Bash(venv/bin/python -c ' *)",
+      "Bash(venv/bin/python)",
+      "Bash(docker exec *)"
     ],
     "deny": []
   }
