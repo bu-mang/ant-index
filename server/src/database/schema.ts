@@ -112,7 +112,8 @@ export const news = pgTable('news', {
 });
 
 // ─── market_summary (전체 시장 한줄평) ───
-// analyzer가 30분마다 전 종목 평균 지표로 한줄평을 생성하여 저장. 항상 1행만 유지.
+// analyzer가 30분마다 전 종목 평균 지표로 한줄평을 생성하여 저장. append-only — 시간대별
+// 시장 분위기 변천을 회고할 수 있도록 매 사이클 새 행을 누적한다 (UPDATE 아님).
 export const marketSummary = pgTable('market_summary', {
   id: serial('id').primaryKey(),
   summary: text('summary').notNull(),
