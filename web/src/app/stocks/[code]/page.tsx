@@ -1,14 +1,12 @@
-// 종목 상세 페이지 — 개별 종목의 통합 개미지표 게이지 + 시계열 차트
+// 종목 상세 페이지 — 메인페이지와 동일한 히어로 + 부차 정보 카드
 "use client";
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { GaugeChart } from "@/components/charts/gauge-chart";
-import { TimeSeriesChart } from "@/components/charts/time-series-chart";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TrendingUp, TrendingDown, Minus, Flame } from "lucide-react";
+import { AntIndexHero } from "@/components/ant-index-hero";
 import {
   useStocks,
   useAntIndex,
@@ -47,7 +45,7 @@ export default function StockDetailPage() {
   return (
     <main className="pt-14 lg:mr-108 min-h-screen">
       <div className="max-w-432 mx-auto px-12 py-6 space-y-6">
-        {/* 뒤로가기 + 종목 정보 */}
+        {/* 뒤로가기 + 종목 식별 줄 */}
         <div className="flex items-center gap-3">
           <Link
             href="/"
@@ -55,16 +53,13 @@ export default function StockDetailPage() {
           >
             ← 대시보드
           </Link>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">{stockName}</h1>
           <Badge variant="secondary">{code}</Badge>
+          <span className="text-sm font-medium">{stockName}</span>
           {stock && stock.currentPrice != null && (
-            <span className="text-lg font-semibold ml-auto">
+            <span className="text-sm font-medium ml-auto">
               {stock.currentPrice.toLocaleString()}원
               <span
-                className={`ml-2 text-sm ${
+                className={`ml-2 ${
                   (stock.changeRate ?? 0) > 0
                     ? "text-[#fa342c]"
                     : (stock.changeRate ?? 0) < 0
@@ -78,6 +73,22 @@ export default function StockDetailPage() {
             </span>
           )}
         </div>
+
+        {/* 히어로 — 메인페이지와 동일 구성, 주체만 종목 주주 개미로 교체 */}
+        <AntIndexHero
+          subject={`${stockName} 주주 개미`}
+          summary={summary?.summary ?? undefined}
+          avgAntIndex={{
+            value: antIndex?.value ?? 50,
+            label: antIndex?.label ?? "-",
+            totalPosts: antIndex?.totalPosts ?? 0,
+          }}
+          data7d={antHistory7d?.data}
+          data30d={antHistory30d?.data}
+          data90d={antHistory90d?.data}
+        />
+
+        {/* ─── 이하 부차 정보 ─── */}
 
         {/* 기본정보 카드 */}
         {priceDetail && (
@@ -147,17 +158,6 @@ export default function StockDetailPage() {
           </div>
         )}
 
-        {/* AI 한줄평 */}
-        {summary?.summary && (
-          <Card>
-            <CardContent className="py-4">
-              <p className="text-sm text-muted-foreground text-center">
-                {summary.summary}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
         {/* 핫댓글 */}
         {hotComments && hotComments.comments.length > 0 && (
           <Card>
@@ -202,21 +202,6 @@ export default function StockDetailPage() {
             </CardContent>
           </Card>
         )}
-
-        {/* 게이지 섹션 — 통합 개미지표 */}
-        <Card>
-          <CardContent className="pt-6 flex justify-center">
-            <div className="max-w-80 w-full">
-              <GaugeChart
-                value={antIndex?.value ?? 50}
-                label={antIndex?.label ?? "-"}
-                title="개미지표"
-                color="gradient"
-                totalPosts={antIndex?.totalPosts}
-              />
-            </div>
-          </CardContent>
-        </Card>
 
         {/* 통계 카드 */}
         {stats && (
@@ -270,33 +255,6 @@ export default function StockDetailPage() {
             </Card>
           </div>
         )}
-
-        {/* 시계열 차트 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">지표 추이</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="30d">
-              <div className="flex items-center justify-end mb-4">
-                <TabsList>
-                  <TabsTrigger value="7d">7일</TabsTrigger>
-                  <TabsTrigger value="30d">30일</TabsTrigger>
-                  <TabsTrigger value="90d">90일</TabsTrigger>
-                </TabsList>
-              </div>
-              <TabsContent value="7d">
-                <TimeSeriesChart data={antHistory7d?.data} />
-              </TabsContent>
-              <TabsContent value="30d">
-                <TimeSeriesChart data={antHistory30d?.data} />
-              </TabsContent>
-              <TabsContent value="90d">
-                <TimeSeriesChart data={antHistory90d?.data} />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
       </div>
     </main>
   );
