@@ -119,3 +119,11 @@ export function useMarketSummary() {
     staleTime: STALE_TIME,
   });
 }
+
+export function useMarketHotComments(limit = 10) {
+  return useQuery({
+    queryKey: ["market-hot-comments", limit],
+    queryFn: () => api.getMarketHotComments(limit),
+    staleTime: STALE_TIME,
+  });
+}

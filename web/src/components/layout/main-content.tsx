@@ -13,6 +13,11 @@ import { TaegukIcon } from "@/components/icons/taeguk";
 import { useMarketAntIndexHistory } from "@/lib/queries";
 import { MARKET_GROUP_ANT_LABEL, type MarketGroup } from "@/lib/constants";
 import { AntIndexHero } from "@/components/ant-index-hero";
+import { HotPostsSection } from "@/components/landing/hot-posts-section";
+import { AboutSection } from "@/components/landing/about-section";
+import { RangeSection } from "@/components/landing/range-section";
+import { FaqSection } from "@/components/landing/faq-section";
+import { DisclaimerSection } from "@/components/landing/disclaimer-section";
 import { useState } from "react";
 
 interface MainContentProps {
@@ -60,6 +65,13 @@ export function MainContent({ avgAntIndex, marketSummary }: MainContentProps) {
             </Tabs>
           }
         />
+
+        {/* ─── 랜딩 섹션들 ─── */}
+        <AboutSection />
+        <HotPostsSection />
+        <RangeSection />
+        <FaqSection />
+        <DisclaimerSection />
       </div>
     </main>
   );

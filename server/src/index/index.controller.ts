@@ -15,6 +15,7 @@ import { StockSummaryDto, MarketSummaryDto } from './dto/summary.dto';
 import { StockStatsDto } from './dto/stock-stats.dto';
 import { PriceDetailDto } from './dto/price-detail.dto';
 import { HotCommentsDto } from './dto/hot-comments.dto';
+import { MarketHotCommentsDto } from './dto/market-hot-comments.dto';
 
 @ApiTags('지표')
 @Controller('stocks/:code')
@@ -163,5 +164,19 @@ export class MarketController {
     @Query('period') period?: string,
   ): Promise<MarketHistoryDto> {
     return this.indexService.getMarketAntIndexHistory(period);
+  }
+
+  @Get('hot-comments')
+  @ApiOperation({
+    summary: '전 종목 횡단 핫 글',
+    description:
+      '최근 24시간 공감수 상위 글. 마스킹 결과에 보이는 글자가 있는 것만 반환.',
+  })
+  @ApiQuery({ name: 'limit', required: false, example: 10 })
+  @ApiResponse({ status: 200, type: MarketHotCommentsDto })
+  getMarketHotComments(
+    @Query('limit') limit?: number,
+  ): Promise<MarketHotCommentsDto> {
+    return this.indexService.getMarketHotComments(limit ? +limit : undefined);
   }
 }

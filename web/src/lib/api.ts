@@ -83,6 +83,19 @@ export interface HotCommentsResponse {
   comments: HotCommentItem[];
 }
 
+export interface MarketHotCommentItem {
+  stockCode: string;
+  stockName: string;
+  maskedContent: string;
+  sentimentLabel: 'BULL' | 'BEAR' | 'NEUTRAL';
+  likeBucket: string;
+  postedAt: string;
+}
+
+export interface MarketHotCommentsResponse {
+  comments: MarketHotCommentItem[];
+}
+
 export interface StockStats {
   code: string;
   name: string;
@@ -125,4 +138,6 @@ export const api = {
     fetchApi<{ summary: string | null; createdAt: string | null }>('/market/summary'),
   getMarketAntIndexHistory: (period = '7d') =>
     fetchApi<MarketIndexHistory>(`/market/ant-index/history?period=${period}`),
+  getMarketHotComments: (limit = 10) =>
+    fetchApi<MarketHotCommentsResponse>(`/market/hot-comments?limit=${limit}`),
 };

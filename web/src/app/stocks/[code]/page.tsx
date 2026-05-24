@@ -3,11 +3,11 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import type { ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Minus, Flame } from "lucide-react";
 import { AntIndexHero } from "@/components/ant-index-hero";
+import { MaskedText } from "@/components/masked-text";
 import {
   useStocks,
   useAntIndex,
@@ -17,51 +17,6 @@ import {
   usePriceDetail,
   useHotComments,
 } from "@/lib/queries";
-
-const MASK_CHAR = "█";
-const BLUR_CHARS = [
-  "돔",
-  "황",
-  "챠",
-  "가",
-  "즈",
-  "아",
-  "개",
-  "미",
-  "감",
-  "성",
-] as const;
-
-const pickBlurChar = () =>
-  BLUR_CHARS[Math.floor(Math.random() * BLUR_CHARS.length)];
-
-/** 서버가 보낸 █ 런(run)을 도메인 키워드로 랜덤 치환하고 블러 처리한다. */
-function renderMaskedContent(text: string): ReactNode {
-  const nodes: ReactNode[] = [];
-  let i = 0;
-  while (i < text.length) {
-    const isMask = text[i] === MASK_CHAR;
-    let j = i;
-    while (j < text.length && (text[j] === MASK_CHAR) === isMask) j++;
-    const chunk = text.slice(i, j);
-    if (isMask) {
-      const replaced = Array.from(chunk, pickBlurChar).join("");
-      nodes.push(
-        <span
-          key={i}
-          className="blur-[3px] select-none"
-          aria-hidden="true"
-        >
-          {replaced}
-        </span>,
-      );
-    } else {
-      nodes.push(<span key={i}>{chunk}</span>);
-    }
-    i = j;
-  }
-  return nodes;
-}
 
 export default function StockDetailPage() {
   const params = useParams();
@@ -237,7 +192,7 @@ export default function StockDetailPage() {
                           : "중립"}
                     </Badge>
                     <p className="text-sm truncate font-mono">
-                      {renderMaskedContent(c.maskedContent)}
+                      <MaskedText text={c.maskedContent} />
                     </p>
                   </div>
                   <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">

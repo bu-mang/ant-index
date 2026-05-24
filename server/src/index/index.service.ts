@@ -18,6 +18,7 @@ import { StockSummaryDto, MarketSummaryDto } from './dto/summary.dto';
 import { StockStatsDto } from './dto/stock-stats.dto';
 import { PriceDetailDto } from './dto/price-detail.dto';
 import { HotCommentsDto } from './dto/hot-comments.dto';
+import { MarketHotCommentsDto } from './dto/market-hot-comments.dto';
 import { maskContent, likeBucket } from './utils/mask-content';
 
 // 히스토리 조회 시 period 파라미터 → 일수 변환
@@ -552,5 +553,51 @@ export class IndexService {
       summary: row?.summary ?? null,
       createdAt: row?.createdAt ?? null,
     };
+  }
+
+  /**
+   * 전 종목 횡단 핫 글 — 최근 24시간 공감수 상위. 마스킹 결과에 보이는 글자가
+   * 하나도 없는(키워드 미매칭) 글은 제외해 화면 노이즈를 줄인다. 종목 정보
+   * (code/name) 를 같이 내려 사용자가 어느 종목 글인지 알 수 있게 한다.
+   */
+  async getMarketHotComments(limit = 10): Promise<MarketHotCommentsDto> {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    // 필터로 깎일 가능성을 감안해 limit 의 3배를 풀링
+    const rows = await this.db
+      .select({
+        content: schema.posts.content,
+        sentimentLabel: schema.posts.sentimentLabel,
+        likeCount: schema.posts.likeCount,
+        postedAt: schema.posts.postedAt,
+        stockCode: schema.stocks.code,
+        stockName: schema.stocks.name,
+      })
+      .from(schema.posts)
+      .innerJoin(schema.stocks, eq(schema.stocks.id, schema.posts.stockId))
+      .where(
+        and(
+          gte(schema.posts.crawledAt, since),
+          sql`${schema.posts.sentimentLabel} is not null`,
+          sql`${schema.posts.likeCount} > 0`,
+        ),
+      )
+      .orderBy(desc(schema.posts.likeCount))
+      .limit(limit * 3);
+
+    const comments = rows
+      .map((r) => ({
+        stockCode: r.stockCode,
+        stockName: r.stockName,
+        maskedContent: maskContent(r.content ?? ''),
+        sentimentLabel: r.sentimentLabel!,
+        likeBucket: likeBucket(r.likeCount),
+        postedAt: r.postedAt?.toISOString() ?? '',
+      }))
+      // 마스킹 결과에 █ / 공백이 아닌 글자가 하나라도 있어야 (키워드 매칭됨)
+      .filter((c) => /[^█\s]/.test(c.maskedContent))
+      .slice(0, limit);
+
+    return { comments };
   }
 }
