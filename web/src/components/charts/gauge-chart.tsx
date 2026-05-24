@@ -306,7 +306,7 @@ export function GaugeChart({
               x={80}
               y={1100}
               textAnchor="start"
-              className="fill-muted-foreground/50"
+              className="fill-muted-foreground"
               style={{ fontSize: "34px" }}
             >
               <tspan x={80}>
