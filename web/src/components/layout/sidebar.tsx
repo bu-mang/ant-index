@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaegukIcon } from "@/components/icons/taeguk";
-import { Construction } from "lucide-react";
+import { Construction, HelpCircle } from "lucide-react";
 import type { Stock } from "@/lib/api";
 
 interface SidebarProps {
@@ -21,14 +21,38 @@ export function Sidebar({ stocks }: SidebarProps) {
     <aside className="hidden lg:flex flex-col w-108 fixed right-0 top-0 bottom-0 border-l border-border bg-sidebar">
       <div className="shrink-0 border-b border-border">
         <div className="h-14 flex items-end justify-between pb-3.5 pl-6 pr-8">
-          <h2
-            className="text-base font-normal"
-            style={{
-              fontFamily: '"Mbc1961", sans-serif',
-            }}
-          >
-            종목별 지수
-          </h2>
+          <div className="flex items-center gap-1.5">
+            <h2
+              className="text-base font-normal"
+              style={{
+                fontFamily: '"Mbc1961", sans-serif',
+              }}
+            >
+              종목별 지수
+            </h2>
+            <TooltipProvider delay={200}>
+              <Tooltip>
+                <TooltipTrigger className="text-muted-foreground hover:text-foreground transition-colors cursor-help">
+                  <HelpCircle className="size-3.5" />
+                </TooltipTrigger>
+                <TooltipContent
+                  side="bottom"
+                  align="start"
+                  className="max-w-72 text-xs leading-relaxed"
+                >
+                  <div className="flex flex-col">
+                    <p className="font-semibold mb-1.5">시세 갱신 주기</p>
+                    <ul className="space-y-1 list-disc pl-4 break-keep">
+                      <li>
+                        최대 <strong>2분 주기</strong>로 가격이 갱신됩니다.
+                      </li>
+                      <li>종목 별로 갱신 타이밍이 다를 수 있습니다. </li>
+                    </ul>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
 
           <Tabs defaultValue="kr">
             <TabsList>
