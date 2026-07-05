@@ -2,9 +2,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { api } from "./api";
+import { api, type MarketParam } from "./api";
+import { getMockTreemap } from "./mock-treemap";
 
 const STALE_TIME = 1 * 60 * 1000; // 5분
+
+// 트리맵: 백엔드 엔드포인트가 준비되면 false 로 바꿔 실 API 로 전환.
+const USE_MOCK_TREEMAP = true;
 
 export function useStocks() {
   return useQuery({
@@ -124,6 +128,17 @@ export function useMarketHotComments(limit = 10) {
   return useQuery({
     queryKey: ["market-hot-comments", limit],
     queryFn: () => api.getMarketHotComments(limit),
+    staleTime: STALE_TIME,
+  });
+}
+
+export function useTreemap(market: MarketParam) {
+  return useQuery({
+    queryKey: ["treemap", market, USE_MOCK_TREEMAP],
+    queryFn: () =>
+      USE_MOCK_TREEMAP
+        ? Promise.resolve(getMockTreemap(market))
+        : api.getTreemap(market),
     staleTime: STALE_TIME,
   });
 }

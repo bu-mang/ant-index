@@ -1,3 +1,5 @@
+import { antIndexColor } from "@/lib/utils";
+
 const RANGES = [
   {
     min: 0,
@@ -59,7 +61,7 @@ export function RangeSection() {
 
       <ul className="divide-y divide-border border border-border rounded-md">
         {RANGES.map((r) => {
-          const color = `color-mix(in srgb, var(--sb) ${100 - r.midpoint}%, var(--gazua))`;
+          const color = antIndexColor(r.midpoint);
           return (
             <li key={r.label} className="flex items-center gap-4 p-4">
               <div

@@ -1,46 +1,16 @@
-// 메인 대시보드 — 통합 개미지표 게이지 + 시계열 차트 + 종목 테이블
+// 메인 — 민심 히트맵 트리맵 (시총 크기 × 개미지표 색상)
 "use client";
 
-import { useMemo } from "react";
-import { MainContent } from "@/components/layout/main-content";
-import { useStocks, useMarketSummary } from "@/lib/queries";
-import { ANT_INDEX_LABELS, getLabel } from "@/lib/constants";
+import { TreemapView } from "@/components/treemap/treemap-view";
+import { DisclaimerSection } from "@/components/landing/disclaimer-section";
 
-export default function DashboardPage() {
-  const { data: stocks, isLoading: stocksLoading } = useStocks();
-  const { data: marketSummary } = useMarketSummary();
-
-  // 30종목 평균 개미지표
-  const avgAntIndex = useMemo(() => {
-    if (!stocks?.length) return { value: 50, label: "-", totalPosts: 0 };
-
-    const withData = stocks.filter((s) => s.antIndex != null);
-    if (!withData.length) return { value: 50, label: "-", totalPosts: 0 };
-
-    const avg =
-      withData.reduce((sum, s) => sum + s.antIndex!, 0) / withData.length;
-    const rounded = Math.round(avg * 100) / 100;
-    const totalPosts = stocks.reduce((sum, s) => sum + (s.totalPosts ?? 0), 0);
-
-    return {
-      value: rounded,
-      label: getLabel(rounded, ANT_INDEX_LABELS),
-      totalPosts,
-    };
-  }, [stocks]);
-
-  if (stocksLoading) {
-    return (
-      <div className="flex items-center justify-center h-96 text-muted-foreground">
-        로딩 중...
-      </div>
-    );
-  }
-
+export default function HomePage() {
   return (
-    <MainContent
-      avgAntIndex={avgAntIndex}
-      marketSummary={marketSummary?.summary ?? undefined}
-    />
+    <main className="pt-14 min-h-screen">
+      <div className="max-w-432 mx-auto px-4 sm:px-8 py-6 space-y-10">
+        <TreemapView />
+        <DisclaimerSection />
+      </div>
+    </main>
   );
 }

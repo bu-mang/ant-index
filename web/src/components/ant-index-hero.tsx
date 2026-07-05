@@ -12,7 +12,7 @@ import {
 import { Camera, HelpCircle } from "lucide-react";
 import { WalkingAnt } from "@/components/walking-ant";
 import { ANT_INDEX_LABELS, getLabel } from "@/lib/constants";
-import { formatDateShort, todayKST } from "@/lib/utils";
+import { antIndexColor, formatDateShort, todayKST } from "@/lib/utils";
 import { useMemo, type ReactNode } from "react";
 import type { HistoryDataPoint } from "@/lib/api";
 
@@ -175,7 +175,7 @@ export function AntIndexHero({
               {pastSnapshots.length > 0 && (
                 <div className="flex-1 flex flex-col justify-between py-8">
                   {pastSnapshots.map((snap) => {
-                    const color = `color-mix(in srgb, var(--sb) ${100 - snap.value}%, var(--gazua))`;
+                    const color = antIndexColor(snap.value);
                     return (
                       <div
                         key={snap.label}

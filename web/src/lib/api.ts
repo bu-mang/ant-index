@@ -112,6 +112,30 @@ export interface SummaryResult {
   summary: string;
 }
 
+// ─── 트리맵(민심 히트맵) ───
+// GET /api/market/treemap?market=KR|US — 셀 크기=시총, 셀 색상=antIndex(민심)
+
+export type MarketParam = "KR" | "US";
+
+export interface TreemapStock {
+  code: string; // 국장 '005930', 미장 'AAPL'
+  name: string;
+  market: string; // KOSPI | KOSDAQ | NASDAQ | NYSE
+  sector: string | null; // 그룹핑 키
+  marketCap: number | null; // 셀 크기. KR=억원, US=USD (같은 시장 뷰 안에서만 비교)
+  currentPrice: number | null;
+  changeRate: number | null;
+  antIndex: number; // 0~100, 셀 색상 (기본 50)
+  label: string; // 돔황챠|불안|중립|기대|가즈아
+  totalPosts: number;
+}
+
+export interface TreemapResponse {
+  market: MarketParam;
+  updatedAt: string;
+  stocks: TreemapStock[];
+}
+
 // ─── API 함수 ───
 
 export const api = {
@@ -140,4 +164,6 @@ export const api = {
     fetchApi<MarketIndexHistory>(`/market/ant-index/history?period=${period}`),
   getMarketHotComments: (limit = 10) =>
     fetchApi<MarketHotCommentsResponse>(`/market/hot-comments?limit=${limit}`),
+  getTreemap: (market: MarketParam) =>
+    fetchApi<TreemapResponse>(`/market/treemap?market=${market}`),
 };

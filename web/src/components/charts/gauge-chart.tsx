@@ -2,7 +2,7 @@
 "use client";
 
 import { ANT_INDEX_LABELS } from "@/lib/constants";
-import { formatDateFull, todayKST } from "@/lib/utils";
+import { antIndexColor, formatDateFull, todayKST } from "@/lib/utils";
 
 interface GaugeChartProps {
   value: number; // 0~100
@@ -125,7 +125,7 @@ export function GaugeChart({
 
   const isGradient = color === "gradient";
   const textColor = isGradient
-    ? `color-mix(in srgb, var(--sb) ${100 - clampedValue}%, var(--gazua))`
+    ? antIndexColor(clampedValue)
     : color === "blue"
       ? "var(--sb)"
       : "var(--gazua)";
